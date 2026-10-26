@@ -45,7 +45,7 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material3.AlertDialog
+import app.zhizhang.ui.components.GlassAlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
@@ -947,7 +947,7 @@ fun SettingsScreen(
         )
     }
     if (showAccessibilityDialog) {
-        AlertDialog(
+        GlassAlertDialog(
             onDismissRequest = { showAccessibilityDialog = false },
             shape = RoundedCornerShape(28.dp),
             containerColor = MaterialTheme.colorScheme.surface,
@@ -1017,7 +1017,7 @@ fun SettingsScreen(
         )
     }
     if (showExportDialog) {
-        AlertDialog(
+        GlassAlertDialog(
             onDismissRequest = { showExportDialog = false },
             title = { Text("导出数据") },
             text = { Text("选择要导出的 CSV。账单和资产会分别生成表格，互不混在一起。") },
@@ -1041,7 +1041,7 @@ fun SettingsScreen(
     }
 
     if (showPrivacyDialog) {
-        AlertDialog(
+        GlassAlertDialog(
             onDismissRequest = { showPrivacyDialog = false },
             containerColor = MaterialTheme.colorScheme.surface,
             title = { Text("你的账，只属于你") },
@@ -1309,7 +1309,7 @@ private fun AiSettingsDialog(
         baseUrl.startsWith("https://") &&
         model.isNotBlank()
 
-    AlertDialog(
+    GlassAlertDialog(
         onDismissRequest = onDismiss,
         containerColor = MaterialTheme.colorScheme.surface,
         title = {
@@ -1484,7 +1484,7 @@ private fun BaiduLoginDialog(
         onDismiss()
     }
 
-    AlertDialog(
+    GlassAlertDialog(
         onDismissRequest = dismissAction,
         containerColor = MaterialTheme.colorScheme.surface,
         title = { Text("连接百度网盘") },
@@ -1726,7 +1726,7 @@ private fun ClearLedgerDialog(
     var confirmation by remember { mutableStateOf("") }
     val expected = "确认清空"
     val canConfirm = confirmation.trim() == expected
-    AlertDialog(
+    GlassAlertDialog(
         onDismissRequest = onDismiss,
         shape = RoundedCornerShape(28.dp),
         containerColor = MaterialTheme.colorScheme.surface,
@@ -1785,7 +1785,7 @@ private fun ReminderTimeDialog(
     val minute = minuteText.toIntOrNull()
     val valid = hour != null && minute != null && hour in 0..23 && minute in 0..59
     val quickTimes = listOf(8 to 30, 12 to 30, 20 to 0, 21 to 30)
-    AlertDialog(
+    GlassAlertDialog(
         onDismissRequest = onDismiss,
         containerColor = MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(28.dp),
@@ -1871,7 +1871,7 @@ private fun BaiduRestoreDialog(
     onConfirm: () -> Unit,
 ) {
     val backup = state.backup
-    AlertDialog(
+    GlassAlertDialog(
         onDismissRequest = { if (!state.restoring) onDismiss() },
         containerColor = MaterialTheme.colorScheme.surface,
         title = { Text("从百度网盘恢复") },
@@ -1951,7 +1951,7 @@ private fun BaiduRetentionDialog(
         mutableFloatStateOf(if (initialCount <= 0) 51f else initialCount.coerceIn(1, 50).toFloat())
     }
     val count = raw.roundToInt()
-    AlertDialog(
+    GlassAlertDialog(
         onDismissRequest = onDismiss,
         containerColor = MaterialTheme.colorScheme.surface,
         title = { Text("备份保留数量") },
@@ -2046,7 +2046,7 @@ private fun BaiduDirectoryDialog(
 ) {
     var path by remember(initialPath) { mutableStateOf(initialPath) }
     val valid = path.startsWith("/apps/") && !path.contains("..")
-    AlertDialog(
+    GlassAlertDialog(
         onDismissRequest = onDismiss,
         containerColor = MaterialTheme.colorScheme.surface,
         title = { Text("备份目录") },

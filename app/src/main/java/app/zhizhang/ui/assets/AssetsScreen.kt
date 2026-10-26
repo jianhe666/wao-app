@@ -28,7 +28,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.AlertDialog
+import app.zhizhang.ui.components.GlassAlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -215,7 +215,7 @@ fun AssetsScreen(onBack: () -> Unit) {
     }
 
     pendingDelete?.let { asset ->
-        AlertDialog(
+        GlassAlertDialog(
             onDismissRequest = { pendingDelete = null },
             title = { Text("删除这项资产？") },
             text = { Text("「${asset.name}」会从资产列表移除，不会删除账目。") },
@@ -343,7 +343,7 @@ private fun AssetEditorDialog(
         )
     }
 
-    AlertDialog(
+    GlassAlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(if (initial == null) "添加资产" else "编辑资产") },
         text = {

@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.AlertDialog
+import app.zhizhang.ui.components.GlassAlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -39,7 +39,7 @@ fun ZhTimePickerDialog(
     val minute = minuteText.toIntOrNull()
     val valid = hour != null && minute != null && hour in 0..23 && minute in 0..59
 
-    AlertDialog(
+    GlassAlertDialog(
         onDismissRequest = onDismiss,
         containerColor = MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(28.dp),

@@ -34,7 +34,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.AlertDialog
+import app.zhizhang.ui.components.GlassAlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -341,7 +341,7 @@ private fun AddBankCardDialog(
     var bank by remember { mutableStateOf("") }
     var tail by remember { mutableStateOf("") }
     val valid = bank.isNotBlank() && tail.filter(Char::isDigit).length in 3..6
-    AlertDialog(
+    GlassAlertDialog(
         onDismissRequest = onDismiss,
         shape = RoundedCornerShape(28.dp),
         containerColor = MaterialTheme.colorScheme.surface,
@@ -806,7 +806,7 @@ private fun NoteDialog(
     onConfirm: (String) -> Unit,
 ) {
     var value by remember(initialNote) { mutableStateOf(initialNote) }
-    AlertDialog(
+    GlassAlertDialog(
         onDismissRequest = onDismiss,
         containerColor = MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(28.dp),

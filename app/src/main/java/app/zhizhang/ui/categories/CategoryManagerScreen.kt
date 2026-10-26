@@ -25,7 +25,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.AlertDialog
+import app.zhizhang.ui.components.GlassAlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -191,7 +191,7 @@ private fun AddCategoryDialog(
     var type by remember { mutableStateOf(TxType.EXPENSE) }
     var color by remember { mutableStateOf(customPalette.first()) }
 
-    AlertDialog(
+    GlassAlertDialog(
         onDismissRequest = onDismiss,
         shape = RoundedCornerShape(26.dp),
         containerColor = MaterialTheme.colorScheme.surface,

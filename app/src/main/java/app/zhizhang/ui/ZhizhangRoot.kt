@@ -31,6 +31,7 @@ import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -53,6 +54,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import android.content.Intent
 import android.net.Uri
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
@@ -61,7 +63,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import app.zhizhang.BuildConfig
 import app.zhizhang.R
+import app.zhizhang.data.GithubRelease
+import app.zhizhang.data.UpdateAutoCheckStore
+import app.zhizhang.data.UpdateChecker
+import app.zhizhang.ui.components.GlassDialog
+import app.zhizhang.ui.components.MarkdownText
 import app.zhizhang.ui.chat.HomeChatScreen
 import app.zhizhang.ui.components.LiquidBackground
 import app.zhizhang.ui.components.LocalHazeState
@@ -124,6 +132,7 @@ fun ZhizhangRoot(
     sharedImage: Uri? = null,
     onSharedImageConsumed: () -> Unit = {},
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
@@ -137,6 +146,7 @@ fun ZhizhangRoot(
     var pendingChatText by remember { mutableStateOf<String?>(null) }
     var pendingChatImage by remember { mutableStateOf<Uri?>(null) }
     var highlightAiRow by remember { mutableStateOf(false) }
+    var autoUpdate by remember { mutableStateOf<GithubRelease?>(null) }
 
     fun openTab(route: String) {
         // 不要在 lambda 里捕获 currentRoute 快照；导航后旧闭包会误判仍在原页面。
@@ -148,6 +158,21 @@ fun ZhizhangRoot(
             }
             launchSingleTop = true
             restoreState = true
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        if (Build.FINGERPRINT.contains("robolectric", ignoreCase = true)) return@LaunchedEffect
+        val store = UpdateAutoCheckStore(context)
+        if (!store.shouldCheck()) return@LaunchedEffect
+        val release = runCatching {
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                UpdateChecker.fetchLatest()
+            }
+        }.getOrNull()
+        store.markChecked()
+        if (release != null && UpdateChecker.isNewer(release.tagName, BuildConfig.VERSION_NAME)) {
+            autoUpdate = release
         }
     }
 
@@ -306,6 +331,45 @@ fun ZhizhangRoot(
                 )
             }
         }
+        }
+    }
+
+    autoUpdate?.let { release ->
+        GlassDialog(onDismissRequest = { autoUpdate = null }) {
+            Text(
+                text = "发现新版本 ${release.tagName}",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Spacer(Modifier.height(10.dp))
+            Text(
+                text = if (release.notes.isBlank()) {
+                    "有新版本可以更新。"
+                } else {
+                    MarkdownText.toPlainText(release.notes)
+                },
+                style = MaterialTheme.typography.bodySmall,
+            )
+            Spacer(Modifier.height(12.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+            ) {
+                TextButton(onClick = { autoUpdate = null }) { Text("稍后") }
+                TextButton(
+                    onClick = {
+                        runCatching {
+                            context.startActivity(
+                                Intent(
+                                    Intent.ACTION_VIEW,
+                                    Uri.parse(release.apkUrl ?: release.releaseUrl),
+                                ),
+                            )
+                        }
+                        autoUpdate = null
+                    },
+                ) { Text(if (release.apkUrl == null) "打开 GitHub" else "下载 APK") }
+            }
         }
     }
 }

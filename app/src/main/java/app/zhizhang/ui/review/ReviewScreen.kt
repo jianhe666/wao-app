@@ -21,7 +21,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.AlertDialog
+import app.zhizhang.ui.components.GlassAlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -146,7 +146,7 @@ fun ReviewScreen(
     }
 
     if (showConfirmAll) {
-        AlertDialog(
+        GlassAlertDialog(
             onDismissRequest = { showConfirmAll = false },
             shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
             title = { Text("确认全部 ${items.size} 笔？") },

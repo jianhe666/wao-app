@@ -46,7 +46,7 @@ import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material3.AlertDialog
+import app.zhizhang.ui.components.GlassAlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
@@ -323,7 +323,7 @@ fun HomeChatScreen(
     }
 
     state.assetPrompt?.let { prompt ->
-        AlertDialog(
+        GlassAlertDialog(
             onDismissRequest = viewModel::dismissAssetPrompt,
             title = { Text("这笔购买要加入资产吗？") },
             text = {
