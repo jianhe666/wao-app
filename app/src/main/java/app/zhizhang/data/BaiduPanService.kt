@@ -162,7 +162,7 @@ class BaiduPanService(private val repository: BaiduRepository) {
             val token = validAccessToken(state)
             ensureDirectory(token, dir)
 
-            val fileName = "zhizhang-backup-${
+            val fileName = "youshu-backup-${
                 LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"))
             }.json"
             val remotePath = "$dir/$fileName"
@@ -227,7 +227,12 @@ class BaiduPanService(private val repository: BaiduRepository) {
             val item = array.optJSONObject(index) ?: continue
             if (item.optInt("isdir", 0) != 0) continue
             val name = item.optString("server_filename")
-            if (!name.startsWith("zhizhang-backup-") || !name.endsWith(".json")) continue
+            // 兼容旧版 App 备份文件名。
+            if ((!name.startsWith("youshu-backup-") && !name.startsWith("zhizhang-backup-")) ||
+                !name.endsWith(".json")
+            ) {
+                continue
+            }
             val path = item.optString("path").ifBlank { "$directory/$name" }
             val modifiedSeconds = item.optLong(
                 "server_mtime",

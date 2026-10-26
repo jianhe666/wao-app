@@ -419,7 +419,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch {
             runCatching { backupManager.exportCsv() }
                 .onSuccess { uri ->
-                    events.send(SettingsEvent.ShareFile(uri, "text/csv", "导出智账账单"))
+                    events.send(SettingsEvent.ShareFile(uri, "text/csv", "导出有数账单"))
                 }
                 .onFailure {
                     events.send(SettingsEvent.Message("导出失败，请稍后再试"))
@@ -431,7 +431,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch {
             runCatching { backupManager.exportJson() }
                 .onSuccess { uri ->
-                    events.send(SettingsEvent.ShareFile(uri, "application/json", "备份智账数据"))
+                    events.send(SettingsEvent.ShareFile(uri, "application/json", "备份有数数据"))
                 }
                 .onFailure {
                     events.send(SettingsEvent.Message("备份失败，请稍后再试"))

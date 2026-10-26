@@ -73,7 +73,7 @@ class OfficialBillCsvTest {
             2026-10-23,12:30,支出,餐饮,微信,瑞幸咖啡,午饭,19.90,手动
         """.trimIndent()
         val result = OfficialBillCsv.decode(csv.toByteArray(), "zhizhang.csv", zone = zone, now = now)
-        assertEquals("智账 CSV", result.source)
+        assertEquals("有数 CSV", result.source)
         assertEquals(1, result.bills.size)
         assertEquals(1_990L, result.bills.first().amountCents)
     }

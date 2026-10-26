@@ -21,7 +21,7 @@ class BackupManager(
 
     suspend fun exportCsv(): Uri = withContext(Dispatchers.IO) {
         val csv = CsvBillCodec.encode(repository.all())
-        val file = newFile("zhizhang-bills-${fileStamp()}.csv")
+        val file = newFile("youshu-bills-${fileStamp()}.csv")
         file.writeText(csv, Charsets.UTF_8)
         uriFor(file)
     }
@@ -80,7 +80,7 @@ class BackupManager(
 
     suspend fun exportJson(): Uri = withContext(Dispatchers.IO) {
         val json = buildBackupJson()
-        val file = newFile("zhizhang-backup-${fileStamp()}.json")
+        val file = newFile("youshu-backup-${fileStamp()}.json")
         file.writeText(json, Charsets.UTF_8)
         uriFor(file)
     }
@@ -96,7 +96,7 @@ class BackupManager(
         if (json.length > 20_000_000) throw IllegalArgumentException("备份文件过大")
 
         val root = JSONObject(json)
-        require(root.optString("app") == "zhizhang") { "这不是智账的备份文件" }
+        require(root.optString("app") == "zhizhang") { "这不是有数的备份文件" }
         val schema = root.optInt("schema", 0)
         require(schema == 1) { "备份文件版本暂不支持" }
 

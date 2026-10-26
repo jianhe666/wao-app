@@ -430,7 +430,7 @@ private fun ChatHeader(
         AppMark(size = 38.dp)
         Spacer(Modifier.width(11.dp))
         Text(
-            text = "智账",
+            text = "有数",
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onBackground,

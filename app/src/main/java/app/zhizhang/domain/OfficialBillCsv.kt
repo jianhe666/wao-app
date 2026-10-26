@@ -63,14 +63,14 @@ object OfficialBillCsv {
                 values.any { it.contains("金额") }
         }
         if (headerIndex < 0) {
-            // 兼容智账自己导出的 CSV。
+            // 兼容有数自己导出的 CSV。
             val own = runCatching { CsvBillCodec.decode(text, zone, now) }
                 .getOrElse { throw BillImportException("无法识别这个 CSV 的表头，请使用微信/支付宝官方导出文件") }
             return BillImportResult(
                 bills = own.bills,
                 skipped = own.skipped,
                 warnings = emptyList(),
-                source = "智账 CSV",
+                source = "有数 CSV",
             )
         }
 

@@ -242,7 +242,7 @@ class AiService(private val settings: SettingsRepository) {
             "[$index] $type | ${tx.merchant.ifBlank { "未命名商户" }} | 备注：$note"
         }.joinToString("\n")
         val system = """
-            你是智账的账单分类助手。只输出一个 JSON 对象，不要解释。
+            你是有数的账单分类助手。只输出一个 JSON 对象，不要解释。
             只能把每笔账单映射到下面已有分类，不能编造分类。
             每笔账单必须单独判断，即使商户相同也可以给不同分类。
             不确定时使用 other_expense 或 other_income，并把 confidence 设低。
@@ -299,7 +299,7 @@ class AiService(private val settings: SettingsRepository) {
             "${it.merchant} | ${if (it.type == TxType.EXPENSE) "支出" else "收入"}"
         }
         val system = """
-            你是智账的商户分类助手。只输出一个 JSON 对象，不要解释。
+            你是有数的商户分类助手。只输出一个 JSON 对象，不要解释。
             只能把用户给出的商户映射到下面已有分类，不得编造商户或分类。
             如果无法确定，给空分类或低 confidence。
             分类列表：
@@ -651,7 +651,7 @@ class AiService(private val settings: SettingsRepository) {
         styleInstruction: String = "",
         accounts: List<Account> = Accounts.all,
     ): String = buildString {
-        appendLine("你是「智账」App 里的 AI 记账助手，名字叫智账。")
+        appendLine("你是「有数」App 里的 AI 记账助手，名字叫有数。")
         appendLine("你说话务实，不使用 Markdown，不推销任何服务。表达风格必须服从下方的风格段落，并明显体现出来。")
         appendLine("当前时间：${now.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)}；时区：${zone.id}。")
         appendLine()

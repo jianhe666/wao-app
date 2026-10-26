@@ -255,7 +255,7 @@ fun SettingsScreen(
                     val send = Intent(Intent.ACTION_SEND).apply {
                         type = event.mime
                         putExtra(Intent.EXTRA_STREAM, event.uri)
-                        clipData = ClipData.newRawUri("智账导出", event.uri)
+                        clipData = ClipData.newRawUri("有数导出", event.uri)
                         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                     }
                     context.startActivity(
@@ -783,7 +783,7 @@ fun SettingsScreen(
             SettingsRow(
                 icon = "app",
                 iconTint = MaterialTheme.zh.gold,
-                title = "智账",
+                title = "有数",
                 subtitle = null,
                 showChevron = false,
                 trailing = {
@@ -906,10 +906,10 @@ fun SettingsScreen(
             text = {
                 Text(
                     text = if (accessibilityEnabled) {
-                        "请在系统的「无障碍」设置里关闭「智账 · 支付识别增强」。\n\n关闭后智账会立即停止读取支付结果页面。"
+                        "请在系统的「无障碍」设置里关闭「有数 · 支付识别增强」。\n\n关闭后有数会立即停止读取支付结果页面。"
                     } else {
-                        "这是可选功能，默认关闭。开启后，智账只读取微信、支付宝、购物和外卖应用的当前页面支付结果文字，用于本地自动记账；不截屏、不上传，也不会读取银行/云闪付。\n\n" +
-                            "需要在系统「无障碍」设置里手动允许智账。"
+                        "这是可选功能，默认关闭。开启后，有数只读取微信、支付宝、购物和外卖应用的当前页面支付结果文字，用于本地自动记账；不截屏、不上传，也不会读取银行/云闪付。\n\n" +
+                            "需要在系统「无障碍」设置里手动允许有数。"
                     },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -972,13 +972,13 @@ fun SettingsScreen(
             title = { Text("你的账，只属于你") },
             text = {
                 Text(
-                    text = "智账默认完全离线，账目只保存在这台手机。\n\n" +
+                    text = "有数默认完全离线，账目只保存在这台手机。\n\n" +
                         "支付通知自动记账默认关闭；开启后，只有支付宝和微信支付的通知会在本机被解析，" +
                         "不会读取聊天内容。\n\n" +
                         "AI 默认关闭。开启并配置 API Key 后，只有在你使用对话或图片识别时，" +
                         "相关文字、图片才会发送到你配置的 API；API Key 仅保存在本机，不写入备份。\n\n" +
                         "百度网盘自动备份默认关闭。登录后由你主动开启，备份文件会上传到你的百度网盘 " +
-                        "/apps/ 应用目录；百度网盘的 AppKey、SecretKey 与 token 仅保存在本机，不写入智账备份。\n\n" +
+                        "/apps/ 应用目录；百度网盘的 AppKey、SecretKey 与 token 仅保存在本机，不写入有数备份。\n\n" +
                         "导出、备份和分享都由你主动发起。",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -1355,7 +1355,7 @@ private fun BaiduLoginDialog(
                     BaiduLoginPhase.REQUESTING,
                     -> {
                         Text(
-                            text = "百度网盘使用设备码授权：智账会显示一个用户码，你到百度授权页输入即可。应用不会接触你的百度密码。",
+                            text = "百度网盘使用设备码授权：有数会显示一个用户码，你到百度授权页输入即可。应用不会接触你的百度密码。",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -1908,7 +1908,7 @@ private fun BaiduDirectoryDialog(
         text = {
             Column {
                 Text(
-                    text = "必须位于百度网盘开放平台分配给应用的 /apps/ 目录内。例如 /apps/你的应用名/智账备份。" +
+                    text = "必须位于百度网盘开放平台分配给应用的 /apps/ 目录内。例如 /apps/你的应用名/有数备份。" +
                         "目录不存在时会自动创建。",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,

@@ -30,11 +30,11 @@ data class BaiduState(
     val loggedIn: Boolean get() = accessToken.isNotBlank() || refreshToken.isNotBlank()
 }
 
-const val DEFAULT_BAIDU_DIR = "/apps/智账备份"
+const val DEFAULT_BAIDU_DIR = "/apps/有数备份"
 
 /**
  * 百度网盘授权与备份状态。AppKey / SecretKey / token 只保存在应用私有 DataStore，
- * 不写入智账的 JSON 备份，也不会上传到除百度开放平台以外的任何地方。
+ * 不写入有数的 JSON 备份，也不会上传到除百度开放平台以外的任何地方。
  */
 class BaiduRepository(private val context: Context) {
 
