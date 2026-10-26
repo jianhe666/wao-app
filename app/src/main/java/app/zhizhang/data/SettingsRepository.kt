@@ -3,6 +3,7 @@ package app.zhizhang.data
 import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -82,6 +83,18 @@ class SettingsRepository(private val context: Context) {
         prefs[REMINDER_MINUTE] ?: 30
     }
 
+    val backgroundId: Flow<String> = context.settingsDataStore.data.map { prefs ->
+        prefs[BACKGROUND_ID] ?: "default"
+    }
+
+    val backgroundOpacity: Flow<Float> = context.settingsDataStore.data.map { prefs ->
+        prefs[BACKGROUND_OPACITY] ?: 1f
+    }
+
+    val customBackgroundPath: Flow<String> = context.settingsDataStore.data.map { prefs ->
+        prefs[CUSTOM_BACKGROUND_PATH] ?: ""
+    }
+
 
     suspend fun snapshotJson(): JSONObject {
         val accounts = customAccounts.first()
@@ -117,6 +130,9 @@ class SettingsRepository(private val context: Context) {
             put("dailyReminderEnabled", dailyReminderEnabled.first())
             put("dailyReminderHour", dailyReminderHour.first())
             put("dailyReminderMinute", dailyReminderMinute.first())
+            put("backgroundId", backgroundId.first())
+            put("backgroundOpacity", backgroundOpacity.first())
+            put("customBackgroundPath", customBackgroundPath.first())
         }
     }
 
@@ -141,6 +157,10 @@ class SettingsRepository(private val context: Context) {
             prefs[REMINDER_ENABLED] = json.optBoolean("dailyReminderEnabled", false)
             prefs[REMINDER_HOUR] = json.optInt("dailyReminderHour", 20)
             prefs[REMINDER_MINUTE] = json.optInt("dailyReminderMinute", 30)
+            prefs[BACKGROUND_ID] = json.optString("backgroundId").ifBlank { "default" }
+            prefs[BACKGROUND_OPACITY] = json.optDouble("backgroundOpacity", 1.0)
+                .toFloat().coerceIn(0f, 1f)
+            prefs[CUSTOM_BACKGROUND_PATH] = json.optString("customBackgroundPath")
         }
     }
 
@@ -217,6 +237,19 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setDailyReminderEnabled(enabled: Boolean) {
         context.settingsDataStore.edit { it[REMINDER_ENABLED] = enabled }
+    }
+
+    suspend fun setBackground(id: String, customPath: String? = null) {
+        context.settingsDataStore.edit { prefs ->
+            prefs[BACKGROUND_ID] = id
+            if (customPath != null) prefs[CUSTOM_BACKGROUND_PATH] = customPath
+        }
+    }
+
+    suspend fun setBackgroundOpacity(value: Float) {
+        context.settingsDataStore.edit {
+            it[BACKGROUND_OPACITY] = value.coerceIn(0f, 1f)
+        }
     }
 
     suspend fun setDailyReminderTime(hour: Int, minute: Int) {
@@ -322,6 +355,9 @@ class SettingsRepository(private val context: Context) {
         private val REMINDER_ENABLED = booleanPreferencesKey("daily_reminder_enabled")
         private val REMINDER_HOUR = intPreferencesKey("daily_reminder_hour")
         private val REMINDER_MINUTE = intPreferencesKey("daily_reminder_minute")
+        private val BACKGROUND_ID = stringPreferencesKey("background_id")
+        private val BACKGROUND_OPACITY = floatPreferencesKey("background_opacity")
+        private val CUSTOM_BACKGROUND_PATH = stringPreferencesKey("custom_background_path")
 
         const val DEFAULT_AI_BASE_URL = "https://api.deepseek.com"
         const val DEFAULT_AI_MODEL = "deepseek-flash"

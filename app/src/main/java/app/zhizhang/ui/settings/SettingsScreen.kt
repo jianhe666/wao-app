@@ -121,6 +121,7 @@ fun SettingsScreen(
     onOpenCategories: () -> Unit,
     onOpenAiCategory: () -> Unit,
     onOpenAssets: () -> Unit,
+    onOpenBackground: () -> Unit,
     highlightAi: Boolean = false,
     onHighlightAiConsumed: () -> Unit = {},
 ) {
@@ -319,6 +320,22 @@ fun SettingsScreen(
                 iconTint = MaterialTheme.zh.gold,
                 title = "资产管理",
                 onClick = onOpenAssets,
+            )
+        }
+
+        Spacer(Modifier.height(20.dp))
+        SettingsSectionLabel("外观")
+        Spacer(Modifier.height(8.dp))
+        ZhCard(
+            modifier = Modifier.fillMaxWidth(),
+            contentPadding = PaddingValues(vertical = 2.dp),
+        ) {
+            SettingsRow(
+                icon = "spark",
+                iconTint = MaterialTheme.colorScheme.primary,
+                title = "个性化背景",
+                subtitle = "预设、自己的照片和透明度",
+                onClick = onOpenBackground,
             )
         }
 

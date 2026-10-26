@@ -62,8 +62,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.navArgument
 import app.zhizhang.BuildConfig
+import app.zhizhang.ZhizhangApp
 import app.zhizhang.R
 import app.zhizhang.data.GithubRelease
 import app.zhizhang.data.UpdateAutoCheckStore
@@ -80,6 +82,7 @@ import app.zhizhang.ui.home.LedgerScreen
 import app.zhizhang.ui.reimbursements.ReimbursementsScreen
 import app.zhizhang.ui.aicategory.AiCategoryHistoryScreen
 import app.zhizhang.ui.aicategory.AiCategoryScreen
+import app.zhizhang.ui.appearance.BackgroundScreen
 import app.zhizhang.ui.assets.AssetsScreen
 import app.zhizhang.ui.categories.CategoryManagerScreen
 import app.zhizhang.ui.review.ReviewScreen
@@ -104,6 +107,7 @@ private object Routes {
     const val AI_CATEGORY = "ai_category"
     const val AI_CATEGORY_HISTORY = "ai_category_history"
     const val ASSETS = "assets"
+    const val BACKGROUND = "background"
     const val EDITOR = "editor?txId={txId}"
 
     fun editor(id: Long? = null): String = if (id == null) "editor" else "editor?txId=$id"
@@ -133,6 +137,10 @@ fun ZhizhangRoot(
     onSharedImageConsumed: () -> Unit = {},
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
+    val settings = remember { (context.applicationContext as ZhizhangApp).settings }
+    val backgroundId by settings.backgroundId.collectAsStateWithLifecycle(initialValue = "default")
+    val backgroundOpacity by settings.backgroundOpacity.collectAsStateWithLifecycle(initialValue = 1f)
+    val customBackgroundPath by settings.customBackgroundPath.collectAsStateWithLifecycle(initialValue = "")
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
@@ -206,7 +214,11 @@ fun ZhizhangRoot(
                 .fillMaxSize()
                 .then(if (hazeState != null) Modifier.hazeSource(hazeState) else Modifier),
         ) {
-        LiquidBackground()
+        LiquidBackground(
+            presetId = backgroundId,
+            opacity = backgroundOpacity,
+            customImagePath = customBackgroundPath.takeIf { it.isNotBlank() },
+        )
         Scaffold(
             containerColor = Color.Transparent,
             contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -277,6 +289,7 @@ fun ZhizhangRoot(
                         onOpenCategories = { navController.navigate(Routes.CATEGORIES) },
                         onOpenAiCategory = { navController.navigate(Routes.AI_CATEGORY) },
                         onOpenAssets = { navController.navigate(Routes.ASSETS) },
+                        onOpenBackground = { navController.navigate(Routes.BACKGROUND) },
                         highlightAi = highlightAiRow,
                         onHighlightAiConsumed = { highlightAiRow = false },
                     )
@@ -295,6 +308,9 @@ fun ZhizhangRoot(
                 }
                 composable(Routes.ASSETS) {
                     AssetsScreen(onBack = { navController.popBackStack() })
+                }
+                composable(Routes.BACKGROUND) {
+                    BackgroundScreen(onBack = { navController.popBackStack() })
                 }
                 composable(Routes.IMPORT) {
                     ImportScreen(

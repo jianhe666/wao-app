@@ -157,7 +157,9 @@ class ScreenshotTest {
         composeRule.waitForIdle()
         capture("04-settings")
 
-        composeRule.onNodeWithText("AI 智能分类").performScrollTo().performClick()
+        composeRule.onNodeWithText("AI 智能分类").performScrollTo().performSemanticsAction(
+            androidx.compose.ui.semantics.SemanticsActions.OnClick,
+        )
         composeRule.waitForIdle()
         capture("09-ai-category")
         composeRule.onNodeWithContentDescription("返回").performClick()
