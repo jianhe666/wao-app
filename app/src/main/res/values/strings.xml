@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">智账</string>
+    <string name="notification_service_name">智账 · 支付通知自动记账</string>
+    <string name="accessibility_service_label">智账 · 支付识别增强</string>
+    <string name="accessibility_service_description">可选增强：仅在你手动开启后，读取微信/支付宝当前页面的支付结果文字，用于本地自动记账。不截屏、不上传。</string>
+</resources>
