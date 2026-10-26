@@ -72,7 +72,7 @@ fun CategoryPickerSheet(
             )
             Spacer(Modifier.height(4.dp))
             Text(
-                text = "选得多了，有数会记住你的习惯。",
+                text = "选得多了，哇哦记账会记住你的习惯。",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

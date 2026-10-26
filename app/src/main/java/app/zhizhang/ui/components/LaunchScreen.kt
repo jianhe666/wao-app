@@ -28,14 +28,14 @@ fun AppLaunchScreen() {
         ) {
             AppMark(size = 94.dp)
             Text(
-                text = "有数",
+                text = "哇哦记账",
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.padding(top = 20.dp),
             )
             Text(
-                text = "有数，心里有数",
+                text = "哇哦一下，马上记账。",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 8.dp),

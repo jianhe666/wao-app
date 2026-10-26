@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -97,6 +98,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.zhizhang.BuildConfig
+import app.zhizhang.data.GithubRelease
 import app.zhizhang.R
 import app.zhizhang.data.BaiduState
 import app.zhizhang.data.Formats
@@ -125,6 +127,7 @@ fun SettingsScreen(
     val baiduLogin by viewModel.baiduLogin.collectAsStateWithLifecycle()
     val baiduBackingUp by viewModel.baiduBackingUp.collectAsStateWithLifecycle()
     val baiduRestore by viewModel.baiduRestore.collectAsStateWithLifecycle()
+    val updateState by viewModel.updateState.collectAsStateWithLifecycle()
     val reminder by viewModel.reminderState.collectAsStateWithLifecycle()
     val autoCaptureAllApps by viewModel.autoCaptureAllApps.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -255,7 +258,7 @@ fun SettingsScreen(
                     val send = Intent(Intent.ACTION_SEND).apply {
                         type = event.mime
                         putExtra(Intent.EXTRA_STREAM, event.uri)
-                        clipData = ClipData.newRawUri("有数导出", event.uri)
+                        clipData = ClipData.newRawUri("哇哦记账导出", event.uri)
                         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                     }
                     context.startActivity(
@@ -781,9 +784,25 @@ fun SettingsScreen(
             )
             SettingsDivider()
             SettingsRow(
+                icon = "restore",
+                iconTint = MaterialTheme.colorScheme.primary,
+                title = "检查更新",
+                subtitle = "从 GitHub 获取最新版本",
+                onClick = viewModel::checkForUpdates,
+                trailing = {
+                    if (updateState.checking) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(16.dp),
+                            strokeWidth = 2.dp,
+                        )
+                    }
+                },
+            )
+            SettingsDivider()
+            SettingsRow(
                 icon = "app",
                 iconTint = MaterialTheme.zh.gold,
-                title = "有数",
+                title = "哇哦记账",
                 subtitle = null,
                 showChevron = false,
                 trailing = {
@@ -906,10 +925,10 @@ fun SettingsScreen(
             text = {
                 Text(
                     text = if (accessibilityEnabled) {
-                        "请在系统的「无障碍」设置里关闭「有数 · 支付识别增强」。\n\n关闭后有数会立即停止读取支付结果页面。"
+                        "请在系统的「无障碍」设置里关闭「哇哦记账 · 支付识别增强」。\n\n关闭后哇哦记账会立即停止读取支付结果页面。"
                     } else {
-                        "这是可选功能，默认关闭。开启后，有数只读取微信、支付宝、购物和外卖应用的当前页面支付结果文字，用于本地自动记账；不截屏、不上传，也不会读取银行/云闪付。\n\n" +
-                            "需要在系统「无障碍」设置里手动允许有数。"
+                        "这是可选功能，默认关闭。开启后，哇哦记账只读取微信、支付宝、购物和外卖应用的当前页面支付结果文字，用于本地自动记账；不截屏、不上传，也不会读取银行/云闪付。\n\n" +
+                            "需要在系统「无障碍」设置里手动允许哇哦记账。"
                     },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -972,13 +991,13 @@ fun SettingsScreen(
             title = { Text("你的账，只属于你") },
             text = {
                 Text(
-                    text = "有数默认完全离线，账目只保存在这台手机。\n\n" +
+                    text = "哇哦记账默认完全离线，账目只保存在这台手机。\n\n" +
                         "支付通知自动记账默认关闭；开启后，只有支付宝和微信支付的通知会在本机被解析，" +
                         "不会读取聊天内容。\n\n" +
                         "AI 默认关闭。开启并配置 API Key 后，只有在你使用对话或图片识别时，" +
                         "相关文字、图片才会发送到你配置的 API；API Key 仅保存在本机，不写入备份。\n\n" +
                         "百度网盘自动备份默认关闭。登录后由你主动开启，备份文件会上传到你的百度网盘 " +
-                        "/apps/ 应用目录；百度网盘的 AppKey、SecretKey 与 token 仅保存在本机，不写入有数备份。\n\n" +
+                        "/apps/ 应用目录；百度网盘的 AppKey、SecretKey 与 token 仅保存在本机，不写入哇哦记账备份。\n\n" +
                         "导出、备份和分享都由你主动发起。",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -986,6 +1005,64 @@ fun SettingsScreen(
             },
             confirmButton = {
                 TextButton(onClick = { showPrivacyDialog = false }) { Text("知道了") }
+            },
+        )
+    }
+
+    updateState.release?.let { release ->
+        AlertDialog(
+            onDismissRequest = viewModel::dismissUpdate,
+            title = { Text("发现新版本 ${release.tagName}") },
+            text = {
+                Column(
+                    modifier = Modifier
+                        .heightIn(max = 320.dp)
+                        .verticalScroll(rememberScrollState()),
+                ) {
+                    if (release.notes.isBlank()) {
+                        Text("有新版本可以更新。")
+                    } else {
+                        Text(release.notes)
+                    }
+                    Spacer(Modifier.height(10.dp))
+                    Text(
+                        text = if (release.apkUrl == null) {
+                            "这个 Release 还没有附带 APK，将打开 GitHub 页面。"
+                        } else {
+                            "将打开 GitHub 下载 APK。"
+                        },
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        openUrl(
+                            context = context,
+                            url = release.apkUrl ?: release.releaseUrl,
+                            onError = onShowMessage,
+                        )
+                        viewModel.dismissUpdate()
+                    },
+                ) {
+                    Text(if (release.apkUrl == null) "打开 GitHub" else "下载 APK")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = viewModel::dismissUpdate) { Text("稍后") }
+            },
+        )
+    }
+
+    updateState.error?.let { error ->
+        AlertDialog(
+            onDismissRequest = viewModel::dismissUpdate,
+            title = { Text("检查更新失败") },
+            text = { Text(error) },
+            confirmButton = {
+                TextButton(onClick = viewModel::dismissUpdate) { Text("知道了") }
             },
         )
     }
@@ -1355,7 +1432,7 @@ private fun BaiduLoginDialog(
                     BaiduLoginPhase.REQUESTING,
                     -> {
                         Text(
-                            text = "百度网盘使用设备码授权：有数会显示一个用户码，你到百度授权页输入即可。应用不会接触你的百度密码。",
+                            text = "百度网盘使用设备码授权：哇哦记账会显示一个用户码，你到百度授权页输入即可。应用不会接触你的百度密码。",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -1908,7 +1985,7 @@ private fun BaiduDirectoryDialog(
         text = {
             Column {
                 Text(
-                    text = "必须位于百度网盘开放平台分配给应用的 /apps/ 目录内。例如 /apps/你的应用名/有数备份。" +
+                    text = "必须位于百度网盘开放平台分配给应用的 /apps/ 目录内。例如 /apps/你的应用名/哇哦记账备份。" +
                         "目录不存在时会自动创建。",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -1942,4 +2019,17 @@ private fun BaiduDirectoryDialog(
             TextButton(onClick = onDismiss) { Text("取消") }
         },
     )
+}
+
+
+private fun openUrl(context: android.content.Context, url: String, onError: (String) -> Unit) {
+    if (url.isBlank()) {
+        onError("没有可打开的更新地址")
+        return
+    }
+    runCatching {
+        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+    }.onFailure {
+        onError("无法打开浏览器，请手动访问 GitHub Releases")
+    }
 }

@@ -21,7 +21,7 @@ data class CsvDecodeResult(
 class CsvException(message: String) : Exception(message)
 
 /**
- * 有数统一账单格式（CSV，UTF-8 with BOM）。
+ * 哇哦记账统一账单格式（CSV，UTF-8 with BOM）。
  *
  * date,time,type,category,account,merchant,note,amount,source
  * 2026-10-23,12:30,支出,餐饮,微信,美团外卖,午饭,38.50,导入
@@ -82,7 +82,7 @@ object CsvBillCodec {
         val dateIndex = findHeader(header, "date", "日期", "交易日期")
         val amountIndex = findHeader(header, "amount", "金额", "金额(元)", "金额（元）", "交易金额")
         if (dateIndex == -1 || amountIndex == -1) {
-            throw CsvException("CSV 缺少 date 或 amount 列，请使用有数导出的账单格式")
+            throw CsvException("CSV 缺少 date 或 amount 列，请使用哇哦记账导出的账单格式")
         }
         val timeIndex = findHeader(header, "time", "时间", "交易时间")
         val typeIndex = findHeader(header, "type", "类型", "收支")

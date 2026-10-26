@@ -25,7 +25,7 @@ git push -u origin main
 1. 在 GitHub 仓库进入 Releases → Draft a new release。
 2. Tag 使用版本号，例如 `v1.0.1`。
 3. 上传已签名的 APK，例如：
-   `zhizhang-1.0.1-release.apk`
+   `wao-1.0.1-release.apk`
 4. Release 说明里写更新内容。
 5. 发布。
 

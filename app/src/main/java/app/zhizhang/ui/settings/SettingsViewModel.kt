@@ -4,6 +4,7 @@ import android.app.Application
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import app.zhizhang.BuildConfig
 import app.zhizhang.ZhizhangApp
 import app.zhizhang.backup.BaiduBackupScheduler
 import app.zhizhang.data.BackupManager
@@ -13,7 +14,10 @@ import app.zhizhang.data.BaiduNetworkException
 import app.zhizhang.data.BaiduRemoteBackup
 import app.zhizhang.data.BaiduState
 import app.zhizhang.data.Formats
+import app.zhizhang.data.GithubRelease
 import app.zhizhang.data.SettingsRepository
+import app.zhizhang.data.UpdateCheckException
+import app.zhizhang.data.UpdateChecker
 import app.zhizhang.reminder.DailyReminderScheduler
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
@@ -34,6 +38,12 @@ data class ReminderUiState(
 ) {
     val timeLabel: String get() = "%02d:%02d".format(hour, minute)
 }
+
+data class UpdateUiState(
+    val checking: Boolean = false,
+    val release: GithubRelease? = null,
+    val error: String? = null,
+)
 
 data class SettingsUiState(
     val loading: Boolean = true,
@@ -112,6 +122,10 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     private val _baiduRestore = MutableStateFlow(BaiduRestoreUiState())
     val baiduRestore = _baiduRestore.asStateFlow()
+
+    private val _updateState = MutableStateFlow(UpdateUiState())
+    val updateState = _updateState.asStateFlow()
+    private var updateJob: Job? = null
 
     private val baseState = combine(
         repository.observeCount(),
@@ -415,11 +429,36 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
+    fun checkForUpdates() {
+        if (_updateState.value.checking) return
+        updateJob?.cancel()
+        updateJob = viewModelScope.launch {
+            _updateState.value = UpdateUiState(checking = true)
+            try {
+                val release = UpdateChecker.fetchLatest()
+                if (UpdateChecker.isNewer(release.tagName, BuildConfig.VERSION_NAME)) {
+                    _updateState.value = UpdateUiState(release = release)
+                } else {
+                    _updateState.value = UpdateUiState()
+                    events.send(SettingsEvent.Message("已是最新版本 v${BuildConfig.VERSION_NAME}"))
+                }
+            } catch (error: UpdateCheckException) {
+                _updateState.value = UpdateUiState(error = error.message)
+            } catch (error: Exception) {
+                _updateState.value = UpdateUiState(error = "检查更新失败，请稍后再试")
+            }
+        }
+    }
+
+    fun dismissUpdate() {
+        _updateState.value = UpdateUiState()
+    }
+
     fun exportCsv() {
         viewModelScope.launch {
             runCatching { backupManager.exportCsv() }
                 .onSuccess { uri ->
-                    events.send(SettingsEvent.ShareFile(uri, "text/csv", "导出有数账单"))
+                    events.send(SettingsEvent.ShareFile(uri, "text/csv", "导出哇哦记账账单"))
                 }
                 .onFailure {
                     events.send(SettingsEvent.Message("导出失败，请稍后再试"))
@@ -431,7 +470,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch {
             runCatching { backupManager.exportJson() }
                 .onSuccess { uri ->
-                    events.send(SettingsEvent.ShareFile(uri, "application/json", "备份有数数据"))
+                    events.send(SettingsEvent.ShareFile(uri, "application/json", "备份哇哦记账数据"))
                 }
                 .onFailure {
                     events.send(SettingsEvent.Message("备份失败，请稍后再试"))

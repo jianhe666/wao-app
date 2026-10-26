@@ -167,7 +167,7 @@ fun RulesScreen(onBack: () -> Unit) {
             if (rules.isEmpty()) {
                 item(key = "empty") {
                     Text(
-                        text = "还没有学习记录。修改一次分类后，有数会记住。",
+                        text = "还没有学习记录。修改一次分类后，哇哦记账会记住。",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(vertical = 12.dp),

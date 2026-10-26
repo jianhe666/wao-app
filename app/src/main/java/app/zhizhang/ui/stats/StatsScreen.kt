@@ -455,7 +455,7 @@ private fun StatsEmpty(month: YearMonth) {
             }
             Spacer(Modifier.height(18.dp))
             Text(
-                text = "${month.monthValue}月还没有数据",
+                text = "${month.monthValue}月还没哇哦记账据",
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onBackground,
             )

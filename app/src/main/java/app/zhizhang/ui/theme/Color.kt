@@ -3,7 +3,7 @@ package app.zhizhang.ui.theme
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
 
-// 有数 · 米白、雾蓝、宝石蓝与暖金。
+// 哇哦记账 · 米白、雾蓝、宝石蓝与暖金。
 // 大面积保持温暖中性，交互由宝石蓝承担，玻璃负责层次。
 val Cobalt = Color(0xFF2451D8)
 val CobaltDeep = Color(0xFF15339B)

@@ -32,7 +32,7 @@ fun AppMark(
     ) {
         Image(
             painter = painterResource(R.drawable.app_icon),
-            contentDescription = "有数",
+            contentDescription = "哇哦记账",
             contentScale = androidx.compose.ui.layout.ContentScale.Crop,
             modifier = Modifier.fillMaxSize(),
         )
