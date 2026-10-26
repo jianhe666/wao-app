@@ -118,6 +118,7 @@ fun SettingsScreen(
     onShowMessage: (String) -> Unit,
     onOpenCategories: () -> Unit,
     onOpenAiCategory: () -> Unit,
+    onOpenAssets: () -> Unit,
     highlightAi: Boolean = false,
     onHighlightAiConsumed: () -> Unit = {},
 ) {
@@ -302,8 +303,24 @@ fun SettingsScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        Spacer(Modifier.height(22.dp))
+        Spacer(Modifier.height(20.dp))
 
+        SettingsSectionLabel("资产")
+        Spacer(Modifier.height(8.dp))
+        ZhCard(
+            modifier = Modifier.fillMaxWidth(),
+            contentPadding = PaddingValues(vertical = 2.dp),
+        ) {
+            SettingsRow(
+                icon = "wallet",
+                iconTint = MaterialTheme.zh.gold,
+                title = "资产管理",
+                subtitle = "添加已有的资产，查看总资产",
+                onClick = onOpenAssets,
+            )
+        }
+
+        Spacer(Modifier.height(20.dp))
         SettingsSectionLabel("记账")
         Spacer(Modifier.height(8.dp))
         ZhCard(

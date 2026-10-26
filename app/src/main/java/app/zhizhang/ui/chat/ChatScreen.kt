@@ -46,6 +46,7 @@ import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
@@ -100,6 +101,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import app.zhizhang.R
 import app.zhizhang.data.Account
 import app.zhizhang.data.Accounts
+import app.zhizhang.data.AssetCategories
 import app.zhizhang.data.Categories
 import app.zhizhang.data.Formats
 import app.zhizhang.data.TxType
@@ -318,6 +320,53 @@ fun HomeChatScreen(
             onSend = { viewModel.send() },
         )
         Spacer(Modifier.height(8.dp))
+    }
+
+    state.assetPrompt?.let { prompt ->
+        AlertDialog(
+            onDismissRequest = viewModel::dismissAssetPrompt,
+            title = { Text("这笔购买要加入资产吗？") },
+            text = {
+                Column {
+                    Text(
+                        text = "AI 判断这是一笔可管理的资产。确认后会加入资产列表，不影响已记的支出。",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Spacer(Modifier.height(10.dp))
+                    prompt.candidates.forEach { candidate ->
+                        val category = AssetCategories.byId(candidate.categoryId)
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 5.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(text = category.emoji)
+                            Spacer(Modifier.width(8.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = candidate.name,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                )
+                                Text(
+                                    text = "${category.name} · ${Formats.money(candidate.amountCents)}",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = viewModel::addPromptedAssets) { Text("加入资产") }
+            },
+            dismissButton = {
+                TextButton(onClick = viewModel::dismissAssetPrompt) { Text("暂不") }
+            },
+        )
     }
 
     if (showStyleSheet) {

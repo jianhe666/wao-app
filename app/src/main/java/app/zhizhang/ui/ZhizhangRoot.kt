@@ -72,6 +72,7 @@ import app.zhizhang.ui.home.LedgerScreen
 import app.zhizhang.ui.reimbursements.ReimbursementsScreen
 import app.zhizhang.ui.aicategory.AiCategoryHistoryScreen
 import app.zhizhang.ui.aicategory.AiCategoryScreen
+import app.zhizhang.ui.assets.AssetsScreen
 import app.zhizhang.ui.categories.CategoryManagerScreen
 import app.zhizhang.ui.review.ReviewScreen
 import app.zhizhang.ui.importflow.ImportScreen
@@ -94,6 +95,7 @@ private object Routes {
     const val CATEGORIES = "categories"
     const val AI_CATEGORY = "ai_category"
     const val AI_CATEGORY_HISTORY = "ai_category_history"
+    const val ASSETS = "assets"
     const val EDITOR = "editor?txId={txId}"
 
     fun editor(id: Long? = null): String = if (id == null) "editor" else "editor?txId=$id"
@@ -249,6 +251,7 @@ fun ZhizhangRoot(
                         onShowMessage = ::showMessage,
                         onOpenCategories = { navController.navigate(Routes.CATEGORIES) },
                         onOpenAiCategory = { navController.navigate(Routes.AI_CATEGORY) },
+                        onOpenAssets = { navController.navigate(Routes.ASSETS) },
                         highlightAi = highlightAiRow,
                         onHighlightAiConsumed = { highlightAiRow = false },
                     )
@@ -264,6 +267,9 @@ fun ZhizhangRoot(
                 }
                 composable(Routes.AI_CATEGORY_HISTORY) {
                     AiCategoryHistoryScreen(onBack = { navController.popBackStack() })
+                }
+                composable(Routes.ASSETS) {
+                    AssetsScreen(onBack = { navController.popBackStack() })
                 }
                 composable(Routes.IMPORT) {
                     ImportScreen(

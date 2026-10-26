@@ -17,6 +17,7 @@ class BackupManager(
     private val context: Context,
     private val repository: TransactionRepository,
     private val settings: SettingsRepository,
+    private val assets: AssetRepository,
 ) {
 
     suspend fun exportCsv(): Uri = withContext(Dispatchers.IO) {
@@ -75,6 +76,24 @@ class BackupManager(
             )
         }
         root.put("rules", ruleArray)
+
+        val assetArray = JSONArray()
+        assets.all().sortedBy { it.acquiredAt }.forEach { asset ->
+            assetArray.put(
+                JSONObject().apply {
+                    put("id", asset.id)
+                    put("name", asset.name)
+                    put("categoryId", asset.categoryId)
+                    put("valueCents", asset.valueCents)
+                    put("note", asset.note)
+                    put("acquiredAt", asset.acquiredAt)
+                    put("source", asset.source)
+                    put("transactionId", asset.transactionId ?: JSONObject.NULL)
+                    put("createdAt", asset.createdAt)
+                },
+            )
+        }
+        root.put("assets", assetArray)
         root.toString(2)
     }
 
@@ -172,6 +191,34 @@ class BackupManager(
         }
 
         repository.replaceAll(restored, restoredRules)
+        root.optJSONArray("assets")?.let { assetArray ->
+            val restoredAssets = mutableListOf<AssetEntity>()
+            for (index in 0 until minOf(assetArray.length(), 20_000)) {
+                val item = assetArray.optJSONObject(index) ?: continue
+                val value = item.optLong("valueCents", 0L)
+                val acquiredAt = item.optLong("acquiredAt", 0L)
+                val name = item.optString("name").trim()
+                if (value <= 0L || acquiredAt <= 0L || name.isBlank()) continue
+                restoredAssets += AssetEntity(
+                    id = item.optLong("id", 0L),
+                    name = name.take(60),
+                    categoryId = AssetCategories.byId(item.optString("categoryId")).id,
+                    valueCents = value,
+                    note = item.optString("note").take(160),
+                    acquiredAt = acquiredAt,
+                    source = AssetSource.entries.firstOrNull {
+                        it.name == item.optString("source")
+                    }?.name ?: AssetSource.MANUAL.name,
+                    transactionId = if (item.isNull("transactionId")) {
+                        null
+                    } else {
+                        item.optLong("transactionId", 0L).takeIf { it > 0L }
+                    },
+                    createdAt = item.optLong("createdAt", System.currentTimeMillis()),
+                )
+            }
+            assets.replaceAll(restoredAssets)
+        }
         settings.setBudget(root.optLong("budgetCents", 0L))
         restored.size
     }

@@ -46,10 +46,18 @@ data class ReimbursementIntent(
     val receivedAt: Long? = null,
 )
 
+data class AiAssetCandidate(
+    val name: String,
+    val amountCents: Long,
+    val categoryId: String,
+    val note: String = "",
+)
+
 data class AiChatReply(
     val reply: String,
     val bills: List<ParsedBill> = emptyList(),
     val reimbursements: List<ReimbursementIntent> = emptyList(),
+    val assets: List<AiAssetCandidate> = emptyList(),
 )
 
 data class MerchantSample(
@@ -222,7 +230,12 @@ class AiService(private val settings: SettingsRepository) {
             zone = zone,
             accounts = accounts,
         )
-        return AiChatReply(reply = reply, bills = bills, reimbursements = reimbursements)
+        return AiChatReply(
+            reply = reply,
+            bills = bills,
+            reimbursements = reimbursements,
+            assets = parseAssetCandidates(json.optJSONArray("assets")),
+        )
     }
 
     suspend fun classifyTransactions(
@@ -574,6 +587,27 @@ class AiService(private val settings: SettingsRepository) {
         return result.distinctBy { it.fingerprint }.sortedByDescending { it.occurredAt }
     }
 
+    private fun parseAssetCandidates(array: JSONArray?): List<AiAssetCandidate> {
+        if (array == null) return emptyList()
+        val result = mutableListOf<AiAssetCandidate>()
+        for (index in 0 until minOf(array.length(), 10)) {
+            val item = array.optJSONObject(index) ?: continue
+            val amount = readAmount(item.opt("amount")) ?: continue
+            val cents = (amount * 100).roundToLong()
+            if (cents <= 0L) continue
+            val name = item.optString("name").trim().take(60)
+            if (name.isBlank()) continue
+            val category = AssetCategories.fromRaw(item.optString("category"))
+            result += AiAssetCandidate(
+                name = name,
+                amountCents = cents,
+                categoryId = category.id,
+                note = item.optString("note").trim().take(160),
+            )
+        }
+        return result.distinctBy { "${it.name}|${it.amountCents}|${it.categoryId}" }
+    }
+
     private fun parseDateTime(value: String, now: LocalDateTime, zone: ZoneId): LocalDateTime? {
         val clean = value.trim().replace(' ', 'T')
         if (clean.isBlank()) return null
@@ -657,7 +691,7 @@ class AiService(private val settings: SettingsRepository) {
         appendLine()
         appendLine("你必须只输出一个 JSON 对象，结构如下：")
         appendLine(
-            """{"reply":"给用户看的自然语言回复","transactions":[{"amount":38.5,"type":"expense","merchant":"美团外卖","category":"food","account":"wechat","occurredAt":"2026-10-23T12:30","note":""}],"reimbursements":[]}""",
+            """{"reply":"给用户看的自然语言回复","transactions":[{"amount":38.5,"type":"expense","merchant":"美团外卖","category":"food","account":"wechat","occurredAt":"2026-10-23T12:30","note":""}],"reimbursements":[],"assets":[]}""",
         )
         appendLine("字段说明：amount 单位为元；type 只能是 expense 或 income；reply 为中文。reimbursements 只用于“这笔支出已报销”，不要生成 income transaction。")
         appendLine("可选分类（id=名称）：")
@@ -689,6 +723,7 @@ class AiService(private val settings: SettingsRepository) {
         appendLine("10. 当用户只是想聊天、问账或寻求消费建议时，也要认真回答，不要为了记账而记账。")
         appendLine("11. 如果用户没有设置预算，不要编造预算；只在合适时机问一次是否要设置。")
         appendLine("12. 用户可能上传账单截图。先读图提取真实交易；看不清、被截断或信息冲突时用一句话追问，不要猜测金额。不要描述图片本身。")
+        appendLine("13. 如果用户购买的是可长期持有、可管理价值的资产（数码产品、家电、家具、车辆、房产、贵金属、收藏品、投资资产等），在 assets 数组里生成候选：{\"name\":\"相机\",\"amount\":4999,\"category\":\"digital\",\"note\":\"\"}。不要因为生成了 assets 就省略对应的 transaction。餐饮、日用消耗、房租、交通、服务、旅行等不要生成 assets。金额不确定时不要生成 assets。App 会让用户确认后再加入资产列表。")
         if (styleInstruction.isNotBlank()) {
             appendLine()
             appendLine("表达风格（高优先级，必须明显体现，不能只换一两个语气词）：")

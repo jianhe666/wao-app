@@ -7,6 +7,8 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.viewModelScope
 import app.zhizhang.ZhizhangApp
 import app.zhizhang.data.Account
+import app.zhizhang.data.AiAssetCandidate
+import app.zhizhang.data.AssetSource
 import app.zhizhang.data.Accounts
 import app.zhizhang.data.AiChatTurn
 import app.zhizhang.data.AiException
@@ -47,6 +49,10 @@ enum class ChatRole {
 data class ChatBill(
     val bill: ParsedBill,
     val categoryId: String,
+)
+
+data class AssetPrompt(
+    val candidates: List<AiAssetCandidate>,
 )
 
 data class ChatReimbursement(
@@ -100,12 +106,14 @@ data class ChatUiState(
     val pendingImage: ImageBitmap? = null,
     val pendingImageDataUrl: String? = null,
     val quickPrompts: List<String> = emptyList(),
+    val assetPrompt: AssetPrompt? = null,
 )
 
 class ChatViewModel(application: Application) : AndroidViewModel(application) {
 
     private val app = application as ZhizhangApp
     private val repository = app.repository
+    private val assetRepository = app.assetRepository
     private val settings = app.settings
     private val aiService = app.aiService
     private val zone = ZoneId.systemDefault()
@@ -300,7 +308,14 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                     bills = result.bills.map { ChatBill(it, it.categoryId) },
                     reimbursements = reimbursements,
                 )
-                _state.update { it.copy(messages = it.messages + assistant, sending = false) }
+                _state.update {
+                    it.copy(
+                        messages = it.messages + assistant,
+                        sending = false,
+                        assetPrompt = result.assets.takeIf { list -> list.isNotEmpty() }
+                            ?.let { list -> AssetPrompt(list) },
+                    )
+                }
                 if (result.reimbursements.size > reimbursements.size) {
                     addError("没有找到唯一对应的待报销支出。补充一下日期、金额或商户，我再试一次。")
                 }
@@ -432,6 +447,39 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                             it
                         }
                     },
+                )
+            }
+        }
+    }
+
+    fun dismissAssetPrompt() {
+        _state.update { it.copy(assetPrompt = null) }
+    }
+
+    fun addPromptedAssets() {
+        val prompt = _state.value.assetPrompt ?: return
+        viewModelScope.launch {
+            val added = prompt.candidates.count { candidate ->
+                assetRepository.add(
+                    name = candidate.name,
+                    categoryId = candidate.categoryId,
+                    valueCents = candidate.amountCents,
+                    note = candidate.note,
+                    source = AssetSource.AI,
+                ) != null
+            }
+            _state.update {
+                it.copy(
+                    assetPrompt = null,
+                    messages = it.messages + ChatMessage(
+                        id = nextId++,
+                        role = ChatRole.ASSISTANT,
+                        content = if (added > 0) {
+                            "已加入资产列表：${prompt.candidates.joinToString("、") { asset -> asset.name }}。"
+                        } else {
+                            "资产没有添加成功，请到「我的 → 资产管理」手动添加。"
+                        },
+                    ),
                 )
             }
         }

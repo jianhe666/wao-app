@@ -15,3 +15,16 @@ class UpdateCheckerTest {
         assertFalse(UpdateChecker.isNewer("v1.0.0", "1.0.1"))
     }
 }
+
+class UpdateCheckerParsingTest {
+    @Test
+    fun `finds apk download link in release html`() {
+        val html = """
+            <a href="/jianhe666/wao-app/releases/download/v1.0.1/wao-1.0.1-release.apk">
+        """.trimIndent()
+        org.junit.Assert.assertEquals(
+            "https://github.com/jianhe666/wao-app/releases/download/v1.0.1/wao-1.0.1-release.apk",
+            UpdateChecker.findApkInPage(html),
+        )
+    }
+}

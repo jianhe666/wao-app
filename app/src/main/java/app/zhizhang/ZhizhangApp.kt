@@ -2,6 +2,7 @@ package app.zhizhang
 
 import android.app.Application
 import app.zhizhang.data.AiService
+import app.zhizhang.data.AssetRepository
 import app.zhizhang.domain.CategoryClassifier
 import app.zhizhang.data.BaiduPanService
 import app.zhizhang.data.BaiduRepository
@@ -57,8 +58,11 @@ class ZhizhangApp : Application() {
     val repository: TransactionRepository by lazy {
         TransactionRepository(database, settings)
     }
+    val assetRepository: AssetRepository by lazy {
+        AssetRepository(database)
+    }
     val backupManager: BackupManager by lazy {
-        BackupManager(this, repository, settings)
+        BackupManager(this, repository, settings, assetRepository)
     }
     val aiService: AiService by lazy {
         AiService(settings)

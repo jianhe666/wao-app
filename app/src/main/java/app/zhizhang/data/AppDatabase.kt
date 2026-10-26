@@ -8,14 +8,20 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.room.RoomDatabase
 
 @Database(
-    entities = [TransactionEntity::class, MerchantRuleEntity::class, NotificationEventEntity::class],
-    version = 3,
+    entities = [
+        TransactionEntity::class,
+        MerchantRuleEntity::class,
+        NotificationEventEntity::class,
+        AssetEntity::class,
+    ],
+    version = 4,
     exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun transactionDao(): TransactionDao
     abstract fun merchantRuleDao(): MerchantRuleDao
     abstract fun notificationEventDao(): NotificationEventDao
+    abstract fun assetDao(): AssetDao
 
     companion object {
         @Volatile
@@ -66,6 +72,22 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        internal val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS assets (" +
+                        "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "name TEXT NOT NULL, categoryId TEXT NOT NULL, " +
+                        "valueCents INTEGER NOT NULL, note TEXT NOT NULL, " +
+                        "acquiredAt INTEGER NOT NULL, source TEXT NOT NULL, " +
+                        "transactionId INTEGER, createdAt INTEGER NOT NULL)",
+                )
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS index_assets_acquiredAt ON assets(acquiredAt)",
+                )
+            }
+        }
+
         fun get(context: Context): AppDatabase =
             instance ?: synchronized(this) {
                 instance ?: Room.databaseBuilder(
@@ -73,7 +95,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "zhizhang.db",
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                     .build()
                     .also { instance = it }
             }
