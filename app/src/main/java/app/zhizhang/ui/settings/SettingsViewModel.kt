@@ -311,7 +311,14 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch {
             try {
                 val json = backupManager.buildBackupJson()
-                val result = baiduPanService.uploadBackup(json, snapshot.directory)
+                val billsCsv = backupManager.buildBillsCsv()
+                val assetsCsv = backupManager.buildAssetsCsv()
+                val result = baiduPanService.uploadBackupBundle(
+                    json = json,
+                    billsCsv = billsCsv,
+                    assetsCsv = assetsCsv,
+                    directory = snapshot.directory,
+                )
                 baiduRepository.markBackupSuccess(result.remotePath)
                 events.send(SettingsEvent.Message("已备份到 ${result.remotePath}"))
             } catch (error: BaiduAuthException) {
@@ -462,6 +469,18 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 }
                 .onFailure {
                     events.send(SettingsEvent.Message("导出失败，请稍后再试"))
+                }
+        }
+    }
+
+    fun exportAssetCsv() {
+        viewModelScope.launch {
+            runCatching { backupManager.exportAssetCsv() }
+                .onSuccess { uri ->
+                    events.send(SettingsEvent.ShareFile(uri, "text/csv", "导出哇哦记账资产"))
+                }
+                .onFailure {
+                    events.send(SettingsEvent.Message("资产导出失败，请稍后再试"))
                 }
         }
     }

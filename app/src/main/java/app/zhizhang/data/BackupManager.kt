@@ -3,6 +3,7 @@ package app.zhizhang.data
 import android.content.Context
 import android.net.Uri
 import androidx.core.content.FileProvider
+import app.zhizhang.domain.AssetCsvCodec
 import app.zhizhang.domain.CsvBillCodec
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -25,6 +26,21 @@ class BackupManager(
         val file = newFile("wao-bills-${fileStamp()}.csv")
         file.writeText(csv, Charsets.UTF_8)
         uriFor(file)
+    }
+
+    suspend fun exportAssetCsv(): Uri = withContext(Dispatchers.IO) {
+        val csv = AssetCsvCodec.encode(assets.all())
+        val file = newFile("wao-assets-${fileStamp()}.csv")
+        file.writeText(csv, Charsets.UTF_8)
+        uriFor(file)
+    }
+
+    suspend fun buildBillsCsv(): String = withContext(Dispatchers.IO) {
+        CsvBillCodec.encode(repository.all())
+    }
+
+    suspend fun buildAssetsCsv(): String = withContext(Dispatchers.IO) {
+        AssetCsvCodec.encode(assets.all())
     }
 
     suspend fun buildBackupJson(): String = withContext(Dispatchers.IO) {
@@ -94,6 +110,20 @@ class BackupManager(
             )
         }
         root.put("assets", assetArray)
+        root.put("settings", settings.snapshotJson())
+        val customCategoryArray = JSONArray()
+        CustomCategoryStore(context).load().forEach { category ->
+            customCategoryArray.put(
+                JSONObject().apply {
+                    put("id", category.id)
+                    put("name", category.name)
+                    put("emoji", category.emoji)
+                    put("color", category.color)
+                    put("type", category.type.name)
+                },
+            )
+        }
+        root.put("customCategories", customCategoryArray)
         root.toString(2)
     }
 
@@ -118,6 +148,27 @@ class BackupManager(
         require(root.optString("app") == "zhizhang") { "这不是哇哦记账的备份文件" }
         val schema = root.optInt("schema", 0)
         require(schema == 1) { "备份文件版本暂不支持" }
+
+        root.optJSONArray("customCategories")?.let { categoryArray ->
+            val restoredCategories = mutableListOf<Category>()
+            for (index in 0 until minOf(categoryArray.length(), 500)) {
+                val item = categoryArray.optJSONObject(index) ?: continue
+                val id = item.optString("id")
+                val name = item.optString("name").trim()
+                if (!id.startsWith("custom:") || name.isBlank()) continue
+                val type = TxType.entries.firstOrNull { it.name == item.optString("type") }
+                    ?: TxType.EXPENSE
+                restoredCategories += Category(
+                    id = id,
+                    name = name.take(8),
+                    emoji = item.optString("emoji", "✳️").ifBlank { "✳️" },
+                    color = item.optLong("color", 0xFF8A8F9C),
+                    type = type,
+                )
+            }
+            CustomCategoryStore(context).replaceAll(restoredCategories)
+            Categories.setCustomCategories(restoredCategories)
+        }
 
         val transactionsArray = root.optJSONArray("transactions") ?: JSONArray()
         require(transactionsArray.length() <= 100_000) { "备份文件包含的记录过多" }
@@ -219,7 +270,8 @@ class BackupManager(
             }
             assets.replaceAll(restoredAssets)
         }
-        settings.setBudget(root.optLong("budgetCents", 0L))
+        root.optJSONObject("settings")?.let { settings.restoreSnapshot(it) }
+            ?: settings.setBudget(root.optLong("budgetCents", 0L))
         restored.size
     }
 

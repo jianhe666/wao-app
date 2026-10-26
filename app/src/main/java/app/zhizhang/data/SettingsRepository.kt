@@ -82,6 +82,68 @@ class SettingsRepository(private val context: Context) {
         prefs[REMINDER_MINUTE] ?: 30
     }
 
+
+    suspend fun snapshotJson(): JSONObject {
+        val accounts = customAccounts.first()
+        val styles = customChatStyles.first()
+        return JSONObject().apply {
+            put("budgetCents", budgetCents.first())
+            put("autoCaptureEnabled", autoCaptureEnabled.first())
+            put("autoCaptureAllApps", autoCaptureAllApps.first())
+            put("lastAccountId", lastAccountId.first())
+            put("aiEnabled", aiEnabled.first())
+            // 不把 API Key 写进备份，避免备份文件泄露凭据。
+            put("aiBaseUrl", aiBaseUrl.first())
+            put("aiModel", aiModel.first())
+            put("chatStyleId", chatStyleId.first())
+            put("customChatStyles", JSONArray().apply {
+                styles.forEach { style ->
+                    put(JSONObject().apply {
+                        put("id", style.id)
+                        put("name", style.name)
+                        put("instruction", style.instruction)
+                    })
+                }
+            })
+            put("customAccounts", JSONArray().apply {
+                accounts.forEach { account ->
+                    put(JSONObject().apply {
+                        put("id", account.id)
+                        put("name", account.name)
+                        put("emoji", account.emoji)
+                    })
+                }
+            })
+            put("dailyReminderEnabled", dailyReminderEnabled.first())
+            put("dailyReminderHour", dailyReminderHour.first())
+            put("dailyReminderMinute", dailyReminderMinute.first())
+        }
+    }
+
+    suspend fun restoreSnapshot(json: JSONObject) {
+        val accounts = json.optJSONArray("customAccounts")
+        val styles = json.optJSONArray("customChatStyles")
+        context.settingsDataStore.edit { prefs ->
+            prefs[BUDGET] = json.optLong("budgetCents", 0L)
+            prefs[AUTO_CAPTURE] = json.optBoolean("autoCaptureEnabled", false)
+            prefs[AUTO_CAPTURE_ALL_APPS] = json.optBoolean("autoCaptureAllApps", false)
+            prefs[LAST_ACCOUNT] = json.optString("lastAccountId").ifBlank { "wechat" }
+            prefs[AI_ENABLED] = json.optBoolean("aiEnabled", false)
+            if (json.has("aiApiKey")) {
+                val key = json.optString("aiApiKey").trim()
+                if (key.isBlank()) prefs.remove(AI_API_KEY) else prefs[AI_API_KEY] = key
+            }
+            prefs[AI_BASE_URL] = json.optString("aiBaseUrl").ifBlank { DEFAULT_AI_BASE_URL }
+            prefs[AI_MODEL] = json.optString("aiModel").ifBlank { DEFAULT_AI_MODEL }
+            prefs[CHAT_STYLE] = json.optString("chatStyleId").ifBlank { "rational" }
+            if (styles == null) prefs.remove(CUSTOM_CHAT_STYLES) else prefs[CUSTOM_CHAT_STYLES] = styles.toString()
+            if (accounts == null) prefs.remove(CUSTOM_ACCOUNTS) else prefs[CUSTOM_ACCOUNTS] = accounts.toString()
+            prefs[REMINDER_ENABLED] = json.optBoolean("dailyReminderEnabled", false)
+            prefs[REMINDER_HOUR] = json.optInt("dailyReminderHour", 20)
+            prefs[REMINDER_MINUTE] = json.optInt("dailyReminderMinute", 30)
+        }
+    }
+
     suspend fun setBudget(cents: Long) {
         context.settingsDataStore.edit { prefs ->
             if (cents <= 0) prefs.remove(BUDGET) else prefs[BUDGET] = cents

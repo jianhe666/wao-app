@@ -32,6 +32,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -47,7 +48,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import android.app.DatePickerDialog
+import java.time.LocalDate
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.zhizhang.data.AssetCategories
@@ -189,17 +193,17 @@ fun AssetsScreen(onBack: () -> Unit) {
                 showEditor = false
                 editingAsset = null
             },
-            onSave = { name, category, value, note ->
+            onSave = { name, category, value, note, acquiredAt ->
                 val target = editingAsset
                 if (target == null) {
-                    viewModel.add(name, category, value, note) { ok ->
+                    viewModel.add(name, category, value, note, acquiredAt) { ok ->
                         if (ok) {
                             showEditor = false
                             editingAsset = null
                         }
                     }
                 } else {
-                    viewModel.update(target, name, category, value, note) { ok ->
+                    viewModel.update(target, name, category, value, note, acquiredAt) { ok ->
                         if (ok) {
                             showEditor = false
                             editingAsset = null
@@ -267,8 +271,13 @@ private fun AssetRow(
                 overflow = TextOverflow.Ellipsis,
             )
             Text(
-                text = "${category.name} · ${date.year}/${date.monthValue}/${date.dayOfMonth}" +
-                    if (asset.note.isBlank()) "" else " · ${asset.note}",
+                text = buildString {
+                    append(category.name)
+                    if (category.tracksPurchaseDate) {
+                        append(" · ${date.year}/${date.monthValue}/${date.dayOfMonth}")
+                    }
+                    if (asset.note.isNotBlank()) append(" · ${asset.note}")
+                },
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
@@ -315,8 +324,9 @@ private fun AssetRow(
 private fun AssetEditorDialog(
     initial: AssetEntity?,
     onDismiss: () -> Unit,
-    onSave: (String, AssetCategory, String, String) -> Unit,
+    onSave: (String, AssetCategory, String, String, Long?) -> Unit,
 ) {
+    val context = LocalContext.current
     var name by remember(initial?.id) { mutableStateOf(initial?.name.orEmpty()) }
     var value by remember(initial?.id) {
         mutableStateOf(initial?.let { Formats.centsToInput(it.valueCents) }.orEmpty())
@@ -324,6 +334,13 @@ private fun AssetEditorDialog(
     var note by remember(initial?.id) { mutableStateOf(initial?.note.orEmpty()) }
     var category by remember(initial?.id) {
         mutableStateOf(initial?.category ?: AssetCategories.all.first())
+    }
+    var acquiredDate by remember(initial?.id) {
+        mutableStateOf(
+            initial?.acquiredAt?.let {
+                Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate()
+            } ?: LocalDate.now(),
+        )
     }
 
     AlertDialog(
@@ -351,6 +368,25 @@ private fun AssetEditorDialog(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     modifier = Modifier.fillMaxWidth(),
                 )
+                if (category.tracksPurchaseDate) {
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedButton(
+                        onClick = {
+                            DatePickerDialog(
+                                context,
+                                { _, year, month, day ->
+                                    acquiredDate = LocalDate.of(year, month + 1, day)
+                                },
+                                acquiredDate.year,
+                                acquiredDate.monthValue - 1,
+                                acquiredDate.dayOfMonth,
+                            ).show()
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text("购入日期：${acquiredDate.year}/${acquiredDate.monthValue}/${acquiredDate.dayOfMonth}")
+                    }
+                }
                 Spacer(Modifier.height(10.dp))
                 Text(
                     text = "类型",
@@ -403,7 +439,15 @@ private fun AssetEditorDialog(
         },
         confirmButton = {
             TextButton(
-                onClick = { onSave(name, category, value, note) },
+                onClick = {
+                    val acquiredAt = if (category.tracksPurchaseDate) {
+                        acquiredDate.atStartOfDay(ZoneId.systemDefault())
+                            .toInstant().toEpochMilli()
+                    } else {
+                        null
+                    }
+                    onSave(name, category, value, note, acquiredAt)
+                },
                 enabled = name.isNotBlank() && value.isNotBlank(),
             ) { Text(if (initial == null) "保存" else "保存修改") }
         },

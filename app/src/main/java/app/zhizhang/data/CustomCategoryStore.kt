@@ -55,6 +55,10 @@ class CustomCategoryStore(context: Context) {
         return next
     }
 
+    fun replaceAll(categories: List<Category>) {
+        save(categories)
+    }
+
     private fun save(categories: List<Category>) {
         val array = JSONArray()
         categories.forEach { category ->

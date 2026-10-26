@@ -27,7 +27,14 @@ class BaiduBackupWorker(
 
         return try {
             val json = app.backupManager.buildBackupJson()
-            val result = app.baiduPanService.uploadBackup(json, state.directory)
+            val billsCsv = app.backupManager.buildBillsCsv()
+            val assetsCsv = app.backupManager.buildAssetsCsv()
+            val result = app.baiduPanService.uploadBackupBundle(
+                json = json,
+                billsCsv = billsCsv,
+                assetsCsv = assetsCsv,
+                directory = state.directory,
+            )
             app.baiduRepository.markBackupSuccess(result.remotePath)
             Result.success()
         } catch (error: BaiduAuthException) {

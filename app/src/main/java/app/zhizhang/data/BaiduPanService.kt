@@ -46,6 +46,7 @@ data class BaiduRemoteBackup(
     val size: Long,
     val modifiedAt: Long,
     val fsId: Long,
+    val isFolder: Boolean = false,
 )
 
 /**
@@ -151,29 +152,47 @@ class BaiduPanService(private val repository: BaiduRepository) {
     }
 
     suspend fun uploadBackup(json: String, directory: String): BaiduBackupResult =
-        withContext(Dispatchers.IO) {
-            val state = repository.current()
-            if (!state.loggedIn) throw BaiduAuthException("还没有登录百度网盘")
-            val dir = normalizeDirectory(directory)
-            val byteArray = json.toByteArray(StandardCharsets.UTF_8)
-            if (byteArray.size > 4 * 1024 * 1024) {
-                throw BaiduException("备份超过 4 MB，暂不支持自动上传，请先导出到本地")
-            }
-            val token = validAccessToken(state)
-            ensureDirectory(token, dir)
+        uploadBackupBundle(json, billsCsv = "", assetsCsv = "", directory = directory)
 
-            val fileName = "wao-backup-${
-                LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"))
-            }.json"
-            val remotePath = "$dir/$fileName"
-            val md5 = md5Hex(byteArray)
-            val uploadId = precreate(token, remotePath, byteArray.size, md5)
-            val host = locateUploadHost(token, remotePath, uploadId)
-            uploadPart(host, token, remotePath, uploadId, byteArray)
-            createFile(token, remotePath, byteArray.size, md5, uploadId)
-            runCatching { pruneBackups(token, dir, state.retentionCount) }
-            BaiduBackupResult(remotePath = remotePath, size = byteArray.size.toLong())
+    suspend fun uploadBackupBundle(
+        json: String,
+        billsCsv: String,
+        assetsCsv: String,
+        directory: String,
+    ): BaiduBackupResult = withContext(Dispatchers.IO) {
+        val state = repository.current()
+        if (!state.loggedIn) throw BaiduAuthException("还没有登录百度网盘")
+        val baseDir = normalizeDirectory(directory)
+        val token = validAccessToken(state)
+        ensureDirectory(token, baseDir)
+
+        val stamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"))
+        val folderName = "wao-backup-$stamp"
+        val folder = "$baseDir/$folderName"
+        ensureDirectory(token, folder)
+
+        var totalSize = 0L
+        val files = buildList {
+            add("backup.json" to json.toByteArray(StandardCharsets.UTF_8))
+            if (billsCsv.isNotBlank()) add("bills.csv" to billsCsv.toByteArray(StandardCharsets.UTF_8))
+            if (assetsCsv.isNotBlank()) add("assets.csv" to assetsCsv.toByteArray(StandardCharsets.UTF_8))
         }
+        files.forEach { (name, bytes) ->
+            if (bytes.size > 4 * 1024 * 1024) {
+                throw BaiduException("$name 超过 4 MB，暂不支持自动上传")
+            }
+            uploadFile(
+                token = token,
+                remotePath = "$folder/$name",
+                bytes = bytes,
+                filename = name,
+                contentType = if (name.endsWith(".csv")) "text/csv" else "application/json",
+            )
+            totalSize += bytes.size
+        }
+        runCatching { pruneBackups(token, baseDir, state.retentionCount) }
+        BaiduBackupResult(remotePath = folder, size = totalSize)
+    }
 
     /** 最近备份，按时间倒序；没有目录时返回空列表。 */
     suspend fun listBackups(directory: String): List<BaiduRemoteBackup> =
@@ -189,9 +208,17 @@ class BaiduPanService(private val repository: BaiduRepository) {
             val state = repository.current()
             if (!state.loggedIn) throw BaiduAuthException("还没有登录百度网盘")
             val token = validAccessToken(state)
+            val fsId = if (backup.isFolder) {
+                listFiles(token, backup.path)
+                    .firstOrNull { it.name == "backup.json" }
+                    ?.fsId
+                    ?: throw BaiduException("备份文件夹里没有 backup.json")
+            } else {
+                backup.fsId
+            }
             val url = "https://pan.baidu.com/rest/2.0/xpan/multimedia?method=filemetas" +
                 "&access_token=${encode(token)}" +
-                "&fsids=${encode(JSONArray().put(backup.fsId).toString())}" +
+                "&fsids=${encode(JSONArray().put(fsId).toString())}" +
                 "&dlink=1"
             val json = getJson(url, checkErrno = true)
             val dlink = json.optJSONArray("list")
@@ -211,6 +238,29 @@ class BaiduPanService(private val repository: BaiduRepository) {
             content
         }
 
+    private fun listFiles(token: String, directory: String): List<BaiduRemoteBackup> {
+        val url = "https://pan.baidu.com/rest/2.0/xpan/file?method=list" +
+            "&access_token=${encode(token)}" +
+            "&dir=${encode(directory)}" +
+            "&order=time&start=0&limit=200"
+        val json = getJson(url, checkErrno = false)
+        val errno = json.optInt("errno", 0)
+        if (errno == -9) return emptyList()
+        if (errno != 0) throw apiError(errno, json, "读取备份文件夹失败")
+        val array = json.optJSONArray("list") ?: return emptyList()
+        return (0 until array.length()).mapNotNull { index ->
+            val item = array.optJSONObject(index) ?: return@mapNotNull null
+            if (item.optInt("isdir", 0) != 0) return@mapNotNull null
+            BaiduRemoteBackup(
+                path = item.optString("path").ifBlank { "$directory/${item.optString("server_filename")}" },
+                name = item.optString("server_filename"),
+                size = item.optLong("size", 0L),
+                modifiedAt = item.optLong("server_mtime", item.optLong("mtime", 0L)) * 1000L,
+                fsId = item.optLong("fs_id", 0L),
+            )
+        }
+    }
+
     private fun listBackups(token: String, directory: String): List<BaiduRemoteBackup> {
         val url = "https://pan.baidu.com/rest/2.0/xpan/file?method=list" +
             "&access_token=${encode(token)}" +
@@ -225,16 +275,15 @@ class BaiduPanService(private val repository: BaiduRepository) {
         val result = mutableListOf<BaiduRemoteBackup>()
         for (index in 0 until array.length()) {
             val item = array.optJSONObject(index) ?: continue
-            if (item.optInt("isdir", 0) != 0) continue
+            val isDir = item.optInt("isdir", 0) != 0
             val name = item.optString("server_filename")
-            // 兼容旧版 App 备份文件名。
-            if ((!name.startsWith("wao-backup-") &&
-                    !name.startsWith("youshu-backup-") &&
-                    !name.startsWith("zhizhang-backup-")) ||
-                !name.endsWith(".json")
-            ) {
-                continue
-            }
+            val isNewFolder = isDir && name.startsWith("wao-backup-")
+            val isLegacyFile = !isDir &&
+                (name.startsWith("wao-backup-") ||
+                    name.startsWith("youshu-backup-") ||
+                    name.startsWith("zhizhang-backup-")) &&
+                name.endsWith(".json")
+            if (!isNewFolder && !isLegacyFile) continue
             val path = item.optString("path").ifBlank { "$directory/$name" }
             val modifiedSeconds = item.optLong(
                 "server_mtime",
@@ -246,6 +295,7 @@ class BaiduPanService(private val repository: BaiduRepository) {
                 size = item.optLong("size", 0L),
                 modifiedAt = modifiedSeconds * 1000L,
                 fsId = item.optLong("fs_id", 0L),
+                isFolder = isNewFolder,
             )
         }
         return result.sortedWith(
@@ -328,6 +378,20 @@ class BaiduPanService(private val repository: BaiduRepository) {
         }
     }
 
+    private fun uploadFile(
+        token: String,
+        remotePath: String,
+        bytes: ByteArray,
+        filename: String,
+        contentType: String,
+    ) {
+        val md5 = md5Hex(bytes)
+        val uploadId = precreate(token, remotePath, bytes.size, md5)
+        val host = locateUploadHost(token, remotePath, uploadId)
+        uploadPart(host, token, remotePath, uploadId, bytes, filename, contentType)
+        createFile(token, remotePath, bytes.size, md5, uploadId)
+    }
+
     private fun precreate(token: String, path: String, size: Int, md5: String): String {
         val json = postForm(
             "https://pan.baidu.com/rest/2.0/xpan/file?method=precreate&access_token=${encode(token)}",
@@ -369,6 +433,8 @@ class BaiduPanService(private val repository: BaiduRepository) {
         path: String,
         uploadId: String,
         bytes: ByteArray,
+        filename: String,
+        contentType: String,
     ) {
         val url = "$host/rest/2.0/pcs/superfile2?method=upload" +
             "&access_token=${encode(token)}" +
@@ -378,8 +444,8 @@ class BaiduPanService(private val repository: BaiduRepository) {
             "&partseq=0"
         val boundary = "----ZhizhangBoundary${System.currentTimeMillis()}"
         val prefix = "--$boundary\r\n" +
-            "Content-Disposition: form-data; name=\"file\"; filename=\"backup.json\"\r\n" +
-            "Content-Type: application/json\r\n\r\n"
+            "Content-Disposition: form-data; name=\"file\"; filename=\"$filename\"\r\n" +
+            "Content-Type: $contentType\r\n\r\n"
         val suffix = "\r\n--$boundary--\r\n"
         val out = ByteArrayOutputStream()
         out.write(prefix.toByteArray(StandardCharsets.UTF_8))

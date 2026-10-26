@@ -16,16 +16,27 @@ data class AssetCategory(
     val name: String,
     val emoji: String,
     val color: Long,
+    val tracksPurchaseDate: Boolean = true,
 )
 
 object AssetCategories {
     val all = listOf(
         AssetCategory("cash", "现金", "💵", 0xFF7BA05B),
         AssetCategory("deposit", "存款", "🏦", 0xFF4F76C7),
-        AssetCategory("investment", "投资", "📈", 0xFF2A9D8F),
+        AssetCategory("stock", "股票", "📊", 0xFF4F76C7, tracksPurchaseDate = false),
+        AssetCategory("fund", "基金", "📈", 0xFF2A9D8F, tracksPurchaseDate = false),
+        AssetCategory("investment", "理财", "💹", 0xFF2A9D8F, tracksPurchaseDate = false),
+        AssetCategory("virtual", "虚拟资产", "🪙", 0xFF9B6BDF, tracksPurchaseDate = false),
         AssetCategory("property", "房产", "🏠", 0xFF5C6BC0),
         AssetCategory("vehicle", "车辆", "🚗", 0xFFE0A458),
         AssetCategory("digital", "数码", "💻", 0xFF3A9BC1),
+        AssetCategory("appliance", "家电", "📺", 0xFF6A8CAF),
+        AssetCategory("furniture", "家具", "🪑", 0xFFA97B55),
+        AssetCategory("jewelry", "珠宝", "💎", 0xFFC65D8A),
+        AssetCategory("collectible", "收藏", "🏺", 0xFFB07C4F),
+        AssetCategory("insurance", "保险", "🛡️", 0xFF3F9A8A),
+        AssetCategory("business", "经营资产", "🏪", 0xFF8A6BBE),
+        AssetCategory("receivable", "应收款", "🧾", 0xFF7E8F70),
         AssetCategory("other", "其他资产", "✨", 0xFF8A8F9C),
     )
 
@@ -117,6 +128,7 @@ class AssetRepository(private val database: AppDatabase) {
         categoryId: String,
         valueCents: Long,
         note: String,
+        acquiredAt: Long? = null,
     ): Boolean {
         if (id <= 0L || name.isBlank() || valueCents <= 0L) return false
         val current = dao.all().firstOrNull { it.id == id } ?: return false
@@ -126,6 +138,7 @@ class AssetRepository(private val database: AppDatabase) {
                 categoryId = AssetCategories.byId(categoryId).id,
                 valueCents = valueCents,
                 note = note.trim().take(160),
+                acquiredAt = acquiredAt ?: current.acquiredAt,
             ),
         )
         return true

@@ -104,6 +104,7 @@ import app.zhizhang.data.BaiduState
 import app.zhizhang.data.Formats
 import app.zhizhang.ui.components.BudgetDialog
 import app.zhizhang.ui.components.ConfirmDialog
+import app.zhizhang.ui.components.GlassDialog
 import app.zhizhang.ui.components.AppMark
 import app.zhizhang.ui.components.BaiduMark
 import app.zhizhang.ui.components.ZhCard
@@ -200,6 +201,7 @@ fun SettingsScreen(
     var showReminderTimeDialog by remember { mutableStateOf(false) }
     var showAccessibilityDialog by remember { mutableStateOf(false) }
     var showBaiduLogoutDialog by remember { mutableStateOf(false) }
+    var showExportDialog by remember { mutableStateOf(false) }
     var notificationAccessGranted by remember {
         mutableStateOf(isNotificationAccessGranted(context))
     }
@@ -315,7 +317,6 @@ fun SettingsScreen(
                 icon = "wallet",
                 iconTint = MaterialTheme.zh.gold,
                 title = "资产管理",
-                subtitle = "添加已有的资产，查看总资产",
                 onClick = onOpenAssets,
             )
         }
@@ -574,9 +575,9 @@ fun SettingsScreen(
             SettingsRow(
                 icon = "export",
                 iconTint = MaterialTheme.colorScheme.onSurfaceVariant,
-                title = "导出 CSV",
-                subtitle = null,
-                onClick = { viewModel.exportCsv() },
+                title = "导出",
+                subtitle = "账单 CSV 或资产 CSV",
+                onClick = { showExportDialog = true },
             )
             SettingsDivider()
             SettingsRow(
@@ -622,7 +623,7 @@ fun SettingsScreen(
                     baiduState.loggedIn ->
                         "已登录 · 可开启每日自动备份"
                     else ->
-                        "登录后，定时把完整账本备份到你的网盘"
+                        "登录后，定时把完整数据备份到你的网盘"
                 },
                 showChevron = false,
                 trailing = {
@@ -726,7 +727,7 @@ fun SettingsScreen(
                             .format(DateTimeFormatter.ofPattern("M月d日 HH:mm"))
                         "$time · ${baiduState.lastBackupStatus.ifBlank { "已尝试备份" }}"
                     }
-                    else -> "使用完整 JSON 备份，包含预算与分类规则"
+                    else -> "每次上传一个文件夹，包含 JSON、账单 CSV 和资产 CSV"
                 },
                 showChevron = false,
                 trailing = {
@@ -1014,6 +1015,30 @@ fun SettingsScreen(
             },
         )
     }
+    if (showExportDialog) {
+        AlertDialog(
+            onDismissRequest = { showExportDialog = false },
+            title = { Text("导出数据") },
+            text = { Text("选择要导出的 CSV。账单和资产会分别生成表格，互不混在一起。") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showExportDialog = false
+                        viewModel.exportCsv()
+                    },
+                ) { Text("账单 CSV") }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        showExportDialog = false
+                        viewModel.exportAssetCsv()
+                    },
+                ) { Text("资产 CSV") }
+            },
+        )
+    }
+
     if (showPrivacyDialog) {
         AlertDialog(
             onDismissRequest = { showPrivacyDialog = false },
@@ -1040,33 +1065,40 @@ fun SettingsScreen(
     }
 
     updateState.release?.let { release ->
-        AlertDialog(
-            onDismissRequest = viewModel::dismissUpdate,
-            title = { Text("发现新版本 ${release.tagName}") },
-            text = {
-                Column(
-                    modifier = Modifier
-                        .heightIn(max = 320.dp)
-                        .verticalScroll(rememberScrollState()),
-                ) {
-                    if (release.notes.isBlank()) {
-                        Text("有新版本可以更新。")
-                    } else {
-                        Text(release.notes)
-                    }
-                    Spacer(Modifier.height(10.dp))
-                    Text(
-                        text = if (release.apkUrl == null) {
-                            "这个 Release 还没有附带 APK，将打开 GitHub 页面。"
-                        } else {
-                            "将打开 GitHub 下载 APK。"
-                        },
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+        GlassDialog(onDismissRequest = viewModel::dismissUpdate) {
+            Text(
+                text = "发现新版本 ${release.tagName}",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Spacer(Modifier.height(10.dp))
+            Column(
+                modifier = Modifier
+                    .heightIn(max = 320.dp)
+                    .verticalScroll(rememberScrollState()),
+            ) {
+                if (release.notes.isBlank()) {
+                    Text("有新版本可以更新。")
+                } else {
+                    Text(release.notes)
                 }
-            },
-            confirmButton = {
+                Spacer(Modifier.height(10.dp))
+                Text(
+                    text = if (release.apkUrl == null) {
+                        "这个 Release 还没有附带 APK，将打开 GitHub 页面。"
+                    } else {
+                        "将打开 GitHub 下载 APK。"
+                    },
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Spacer(Modifier.height(8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+            ) {
+                TextButton(onClick = viewModel::dismissUpdate) { Text("稍后") }
                 TextButton(
                     onClick = {
                         openUrl(
@@ -1079,22 +1111,27 @@ fun SettingsScreen(
                 ) {
                     Text(if (release.apkUrl == null) "打开 GitHub" else "下载 APK")
                 }
-            },
-            dismissButton = {
-                TextButton(onClick = viewModel::dismissUpdate) { Text("稍后") }
-            },
-        )
+            }
+        }
     }
 
     updateState.error?.let { error ->
-        AlertDialog(
-            onDismissRequest = viewModel::dismissUpdate,
-            title = { Text("检查更新失败") },
-            text = { Text(error) },
-            confirmButton = {
+        GlassDialog(onDismissRequest = viewModel::dismissUpdate) {
+            Text(
+                text = "检查更新失败",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Spacer(Modifier.height(8.dp))
+            Text(error)
+            Spacer(Modifier.height(8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+            ) {
                 TextButton(onClick = viewModel::dismissUpdate) { Text("知道了") }
-            },
-        )
+            }
+        }
     }
 }
 

@@ -32,6 +32,7 @@ class AssetsViewModel(application: Application) : AndroidViewModel(application) 
         category: AssetCategory,
         valueInput: String,
         note: String,
+        acquiredAt: Long? = null,
         onDone: (Boolean) -> Unit,
     ) {
         val valueCents = Formats.amountInputToCents(valueInput)
@@ -45,6 +46,7 @@ class AssetsViewModel(application: Application) : AndroidViewModel(application) 
                 categoryId = category.id,
                 valueCents = valueCents,
                 note = note,
+                acquiredAt = acquiredAt ?: System.currentTimeMillis(),
                 source = AssetSource.MANUAL,
             )
             onDone(id != null)
@@ -57,6 +59,7 @@ class AssetsViewModel(application: Application) : AndroidViewModel(application) 
         category: AssetCategory,
         valueInput: String,
         note: String,
+        acquiredAt: Long?,
         onDone: (Boolean) -> Unit,
     ) {
         val valueCents = Formats.amountInputToCents(valueInput)
@@ -71,6 +74,7 @@ class AssetsViewModel(application: Application) : AndroidViewModel(application) 
                 categoryId = category.id,
                 valueCents = valueCents,
                 note = note,
+                acquiredAt = acquiredAt,
             )
             onDone(ok)
         }
