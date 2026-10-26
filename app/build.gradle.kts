@@ -22,8 +22,8 @@ android {
         applicationId = "app.zhizhang"
         minSdk = 26
         targetSdk = 35
-        versionCode = 70
-        versionName = "1.1.2"
+        versionCode = 71
+        versionName = "1.1.3"
         vectorDrawables {
             useSupportLibrary = true
         }

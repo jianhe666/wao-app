@@ -105,6 +105,7 @@ import app.zhizhang.data.Formats
 import app.zhizhang.ui.components.BudgetDialog
 import app.zhizhang.ui.components.ConfirmDialog
 import app.zhizhang.ui.components.GlassDialog
+import app.zhizhang.ui.components.MarkdownText
 import app.zhizhang.ui.components.AppMark
 import app.zhizhang.ui.components.BaiduMark
 import app.zhizhang.ui.components.ZhCard
@@ -1080,7 +1081,7 @@ fun SettingsScreen(
                 if (release.notes.isBlank()) {
                     Text("有新版本可以更新。")
                 } else {
-                    Text(release.notes)
+                    Text(MarkdownText.toPlainText(release.notes))
                 }
                 Spacer(Modifier.height(10.dp))
                 Text(
