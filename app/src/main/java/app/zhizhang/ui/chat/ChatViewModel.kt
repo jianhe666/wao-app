@@ -9,6 +9,7 @@ import app.zhizhang.ZhizhangApp
 import app.zhizhang.data.Account
 import app.zhizhang.data.AiAssetCandidate
 import app.zhizhang.data.AssetSource
+import app.zhizhang.data.ChatHistoryStore
 import app.zhizhang.data.Accounts
 import app.zhizhang.data.AiChatTurn
 import app.zhizhang.data.AiException
@@ -25,6 +26,11 @@ import app.zhizhang.domain.ChatStyle
 import app.zhizhang.domain.CustomChatStyle
 import app.zhizhang.domain.ChatStyles
 import app.zhizhang.domain.ParsedBill
+import app.zhizhang.data.TransactionStatus
+import org.json.JSONArray
+import org.json.JSONObject
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
@@ -116,20 +122,24 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     private val assetRepository = app.assetRepository
     private val settings = app.settings
     private val aiService = app.aiService
+    private val historyStore = ChatHistoryStore(app)
     private val zone = ZoneId.systemDefault()
-    private var nextId = 1L
     private val greeting = ChatGreetings.forMoment(LocalDateTime.now(zone))
+    private val initialMessages = decodeMessages(historyStore.load()).ifEmpty {
+        listOf(
+            ChatMessage(
+                id = 0L,
+                role = ChatRole.ASSISTANT,
+                content = greeting.message,
+                welcome = true,
+            ),
+        )
+    }
+    private var nextId = (initialMessages.maxOfOrNull { it.id } ?: 0L) + 1L
 
     private val _state = MutableStateFlow(
         ChatUiState(
-            messages = listOf(
-                ChatMessage(
-                    id = 0L,
-                    role = ChatRole.ASSISTANT,
-                    content = greeting.message,
-                    welcome = true,
-                ),
-            ),
+            messages = initialMessages,
             quickPrompts = greeting.suggestions,
         ),
     )
@@ -188,6 +198,28 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             }.collect { available ->
                 _state.update { it.copy(available = available, checking = false) }
             }
+        }
+        viewModelScope.launch {
+            _state
+                .map { it.messages }
+                .distinctUntilChanged()
+                .collect { messages -> historyStore.save(encodeMessages(messages)) }
+        }
+    }
+
+    fun clearHistory() {
+        _state.update {
+            it.copy(
+                messages = listOf(
+                    ChatMessage(
+                        id = nextId++,
+                        role = ChatRole.ASSISTANT,
+                        content = greeting.message,
+                        welcome = true,
+                    ),
+                ),
+                assetPrompt = null,
+            )
         }
     }
 
@@ -597,4 +629,102 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             }
         }.take(2_400)
     }
+
+
+    private fun encodeMessages(messages: List<ChatMessage>): String {
+        val array = JSONArray()
+        messages.takeLast(500).forEach { message ->
+            array.put(
+                JSONObject().apply {
+                    put("id", message.id)
+                    put("role", message.role.name)
+                    put("content", message.content)
+                    put("confirmed", message.confirmed)
+                    put("confirmedCount", message.confirmedCount)
+                    put("dismissed", message.dismissed)
+                    put("error", message.error)
+                    put("welcome", message.welcome)
+                    put("bills", JSONArray().apply {
+                        message.bills.forEach { chatBill ->
+                            put(
+                                JSONObject().apply {
+                                    put("amountCents", chatBill.bill.amountCents)
+                                    put("type", chatBill.bill.type.name)
+                                    put("occurredAt", chatBill.bill.occurredAt)
+                                    put("merchant", chatBill.bill.merchant)
+                                    put("categoryId", chatBill.categoryId)
+                                    put("accountId", chatBill.bill.accountId)
+                                    put("note", chatBill.bill.note)
+                                    put("rawText", chatBill.bill.rawText)
+                                    put("confidence", chatBill.bill.confidence.toDouble())
+                                    put("fingerprint", chatBill.bill.fingerprint)
+                                    put("externalId", chatBill.bill.externalId ?: JSONObject.NULL)
+                                    put("status", chatBill.bill.status.name)
+                                    put("needsConfirmation", chatBill.bill.needsConfirmation)
+                                },
+                            )
+                        }
+                    })
+                },
+            )
+        }
+        return array.toString()
+    }
+
+    private fun decodeMessages(raw: String?): List<ChatMessage> {
+        if (raw.isNullOrBlank()) return emptyList()
+        return runCatching {
+            val array = JSONArray(raw)
+            buildList {
+                for (index in 0 until minOf(array.length(), 500)) {
+                    val item = array.optJSONObject(index) ?: continue
+                    val role = ChatRole.entries.firstOrNull { it.name == item.optString("role") }
+                        ?: continue
+                    val billsArray = item.optJSONArray("bills")
+                    val bills = buildList {
+                        for (billIndex in 0 until (billsArray?.length() ?: 0)) {
+                            val bill = billsArray?.optJSONObject(billIndex) ?: continue
+                            val categoryId = bill.optString("categoryId")
+                            add(
+                                ChatBill(
+                                    bill = ParsedBill(
+                                        amountCents = bill.optLong("amountCents"),
+                                        type = TxType.entries.firstOrNull {
+                                            it.name == bill.optString("type")
+                                        } ?: TxType.EXPENSE,
+                                        occurredAt = bill.optLong("occurredAt"),
+                                        merchant = bill.optString("merchant"),
+                                        categoryId = categoryId,
+                                        accountId = bill.optString("accountId"),
+                                        note = bill.optString("note"),
+                                        rawText = bill.optString("rawText"),
+                                        confidence = bill.optDouble("confidence", 0.9).toFloat(),
+                                        fingerprint = bill.optString("fingerprint"),
+                                        externalId = bill.optString("externalId").takeIf { it.isNotBlank() },
+                                        status = TransactionStatus.from(bill.optString("status")),
+                                        needsConfirmation = bill.optBoolean("needsConfirmation", false),
+                                    ),
+                                    categoryId = categoryId,
+                                ),
+                            )
+                        }
+                    }
+                    add(
+                        ChatMessage(
+                            id = item.optLong("id"),
+                            role = role,
+                            content = item.optString("content"),
+                            bills = bills,
+                            confirmed = item.optBoolean("confirmed", false),
+                            confirmedCount = item.optInt("confirmedCount", 0),
+                            dismissed = item.optBoolean("dismissed", false),
+                            error = item.optBoolean("error", false),
+                            welcome = item.optBoolean("welcome", false),
+                        ),
+                    )
+                }
+            }
+        }.getOrDefault(emptyList())
+    }
+
 }

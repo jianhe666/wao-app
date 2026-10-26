@@ -45,6 +45,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import app.zhizhang.ui.components.GlassAlertDialog
 import androidx.compose.material3.Button
@@ -138,6 +139,7 @@ fun HomeChatScreen(
     val customStyles by viewModel.customChatStyles.collectAsStateWithLifecycle()
     val customAccounts by viewModel.customAccounts.collectAsStateWithLifecycle()
     var showStyleSheet by remember { mutableStateOf(false) }
+    var showClearDialog by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
     val focusManager = LocalFocusManager.current
     val context = LocalContext.current
@@ -217,8 +219,10 @@ fun HomeChatScreen(
     ) {
         ChatHeader(
             style = style,
+            canClear = state.messages.any { !it.welcome },
             onStyleClick = { showStyleSheet = true },
             onAddBill = onAddBill,
+            onClear = { showClearDialog = true },
         )
         BudgetLine(summary)
         Spacer(Modifier.height(4.dp))
@@ -369,6 +373,25 @@ fun HomeChatScreen(
         )
     }
 
+    if (showClearDialog) {
+        GlassAlertDialog(
+            onDismissRequest = { showClearDialog = false },
+            title = { Text("清空聊天记录？") },
+            text = { Text("清空后只保留一条问候语。账目不会被删除。") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.clearHistory()
+                        showClearDialog = false
+                    },
+                ) { Text("清空", color = MaterialTheme.zh.expense) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showClearDialog = false }) { Text("取消") }
+            },
+        )
+    }
+
     if (showStyleSheet) {
         ChatStyleSheet(
             currentStyleId = style.id,
@@ -467,8 +490,10 @@ private fun createCameraUri(context: Context): Uri {
 @Composable
 private fun ChatHeader(
     style: ChatStyle,
+    canClear: Boolean,
     onStyleClick: () -> Unit,
     onAddBill: () -> Unit,
+    onClear: () -> Unit,
 ) {
     Row(
         modifier = Modifier
@@ -523,6 +548,20 @@ private fun ChatHeader(
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(18.dp),
             )
+        }
+        if (canClear) {
+            Spacer(Modifier.width(5.dp))
+            IconButton(
+                onClick = onClear,
+                modifier = Modifier.size(32.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "清空聊天记录",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(18.dp),
+                )
+            }
         }
     }
 }

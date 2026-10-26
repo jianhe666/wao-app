@@ -4,4 +4,9 @@
     <string name="notification_service_name">哇哦记账 · 支付通知自动记账</string>
     <string name="accessibility_service_label">哇哦记账 · 支付识别增强</string>
     <string name="accessibility_service_description">可选增强：仅在你手动开启后，读取微信/支付宝当前页面的支付结果文字，用于本地自动记账。不截屏、不上传。</string>
+    <string name="widget_description">本月支出和预算概览，点击打开哇哦记账</string>
+    <string name="widget_title">哇哦记账</string>
+    <string name="widget_month_default">本月概览</string>
+    <string name="widget_expense_default">¥0.00</string>
+    <string name="widget_hint">点一下打开 · 今天也要有数</string>
 </resources>

@@ -25,6 +25,7 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import app.zhizhang.ui.ZhizhangRoot
 import app.zhizhang.ui.components.AppLaunchScreen
 import app.zhizhang.ui.theme.ZhizhangTheme
+import app.zhizhang.widget.BillWidgetProvider
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -73,6 +74,11 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        BillWidgetProvider.refresh(this)
     }
 
     override fun onNewIntent(intent: Intent) {
