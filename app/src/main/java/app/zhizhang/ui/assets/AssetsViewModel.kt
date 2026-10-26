@@ -51,6 +51,31 @@ class AssetsViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
+    fun update(
+        asset: AssetEntity,
+        name: String,
+        category: AssetCategory,
+        valueInput: String,
+        note: String,
+        onDone: (Boolean) -> Unit,
+    ) {
+        val valueCents = Formats.amountInputToCents(valueInput)
+        if (name.isBlank() || valueCents <= 0L) {
+            onDone(false)
+            return
+        }
+        viewModelScope.launch {
+            val ok = repository.update(
+                id = asset.id,
+                name = name,
+                categoryId = category.id,
+                valueCents = valueCents,
+                note = note,
+            )
+            onDone(ok)
+        }
+    }
+
     fun delete(asset: AssetEntity) {
         viewModelScope.launch { repository.delete(asset.id) }
     }

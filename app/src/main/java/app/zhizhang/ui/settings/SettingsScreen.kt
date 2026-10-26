@@ -804,7 +804,6 @@ fun SettingsScreen(
                 icon = "restore",
                 iconTint = MaterialTheme.colorScheme.primary,
                 title = "检查更新",
-                subtitle = "从 GitHub 获取最新版本",
                 onClick = viewModel::checkForUpdates,
                 trailing = {
                     if (updateState.checking) {
@@ -813,6 +812,20 @@ fun SettingsScreen(
                             strokeWidth = 2.dp,
                         )
                     }
+                },
+            )
+            SettingsDivider()
+            SettingsRow(
+                icon = "export",
+                iconTint = MaterialTheme.colorScheme.primary,
+                title = "GitHub 仓库",
+                subtitle = "github.com/jianhe666/wao-app",
+                onClick = {
+                    openUrl(
+                        context = context,
+                        url = "https://github.com/jianhe666/wao-app",
+                        onError = onShowMessage,
+                    )
                 },
             )
             SettingsDivider()

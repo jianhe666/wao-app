@@ -37,7 +37,20 @@ class AssetRepositoryTest {
             assertEquals(1, assets.size)
             assertEquals("相机", assets.first().name)
             assertEquals(AssetSource.AI, assets.first().assetSource)
-            repository.delete(id!!)
+            assertTrue(
+                repository.update(
+                    id = id!!,
+                    name = "相机（编辑）",
+                    categoryId = "other",
+                    valueCents = 399_900,
+                    note = "已更新",
+                ),
+            )
+            val edited = repository.all().first()
+            assertEquals("相机（编辑）", edited.name)
+            assertEquals(399_900L, edited.valueCents)
+            assertEquals("other", edited.categoryId)
+            repository.delete(id)
             assertTrue(repository.all().isEmpty())
         } finally {
             database.close()

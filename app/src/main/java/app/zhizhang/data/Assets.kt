@@ -111,6 +111,26 @@ class AssetRepository(private val database: AppDatabase) {
         )
     }
 
+    suspend fun update(
+        id: Long,
+        name: String,
+        categoryId: String,
+        valueCents: Long,
+        note: String,
+    ): Boolean {
+        if (id <= 0L || name.isBlank() || valueCents <= 0L) return false
+        val current = dao.all().firstOrNull { it.id == id } ?: return false
+        dao.update(
+            current.copy(
+                name = name.trim().take(60),
+                categoryId = AssetCategories.byId(categoryId).id,
+                valueCents = valueCents,
+                note = note.trim().take(160),
+            ),
+        )
+        return true
+    }
+
     suspend fun delete(id: Long) {
         dao.deleteById(id)
     }

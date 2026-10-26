@@ -27,6 +27,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -63,7 +64,8 @@ fun AssetsScreen(onBack: () -> Unit) {
     val viewModel: AssetsViewModel = viewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val zone = remember { ZoneId.systemDefault() }
-    var showAdd by remember { mutableStateOf(false) }
+    var showEditor by remember { mutableStateOf(false) }
+    var editingAsset by remember { mutableStateOf<AssetEntity?>(null) }
     var pendingDelete by remember { mutableStateOf<AssetEntity?>(null) }
 
     Column(
@@ -99,7 +101,12 @@ fun AssetsScreen(onBack: () -> Unit) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            TextButton(onClick = { showAdd = true }) { Text("+ 添加") }
+            TextButton(
+                onClick = {
+                    editingAsset = null
+                    showEditor = true
+                },
+            ) { Text("+ 添加") }
         }
 
         ZhCard(
@@ -151,7 +158,12 @@ fun AssetsScreen(onBack: () -> Unit) {
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         Spacer(Modifier.height(14.dp))
-                        TextButton(onClick = { showAdd = true }) { Text("添加第一项资产") }
+                        TextButton(
+                            onClick = {
+                                editingAsset = null
+                                showEditor = true
+                            },
+                        ) { Text("添加第一项资产") }
                     }
                 }
             } else {
@@ -159,6 +171,10 @@ fun AssetsScreen(onBack: () -> Unit) {
                     AssetRow(
                         asset = asset,
                         zone = zone,
+                        onEdit = {
+                            editingAsset = asset
+                            showEditor = true
+                        },
                         onDelete = { pendingDelete = asset },
                     )
                 }
@@ -166,12 +182,29 @@ fun AssetsScreen(onBack: () -> Unit) {
         }
     }
 
-    if (showAdd) {
-        AddAssetDialog(
-            onDismiss = { showAdd = false },
+    if (showEditor) {
+        AssetEditorDialog(
+            initial = editingAsset,
+            onDismiss = {
+                showEditor = false
+                editingAsset = null
+            },
             onSave = { name, category, value, note ->
-                viewModel.add(name, category, value, note) { ok ->
-                    if (ok) showAdd = false
+                val target = editingAsset
+                if (target == null) {
+                    viewModel.add(name, category, value, note) { ok ->
+                        if (ok) {
+                            showEditor = false
+                            editingAsset = null
+                        }
+                    }
+                } else {
+                    viewModel.update(target, name, category, value, note) { ok ->
+                        if (ok) {
+                            showEditor = false
+                            editingAsset = null
+                        }
+                    }
                 }
             },
         )
@@ -201,6 +234,7 @@ fun AssetsScreen(onBack: () -> Unit) {
 private fun AssetRow(
     asset: AssetEntity,
     zone: ZoneId,
+    onEdit: () -> Unit,
     onDelete: () -> Unit,
 ) {
     val category = asset.category
@@ -210,6 +244,7 @@ private fun AssetRow(
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
             .background(MaterialTheme.zh.chip.copy(alpha = 0.55f))
+            .clickable(onClick = onEdit)
             .padding(horizontal = 13.dp, vertical = 11.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -248,34 +283,52 @@ private fun AssetRow(
                 fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.onSurface,
             )
-            IconButton(
-                onClick = onDelete,
-                modifier = Modifier.size(28.dp),
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = "删除${asset.name}",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(16.dp),
-                )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(
+                    onClick = onEdit,
+                    modifier = Modifier.size(28.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = "编辑${asset.name}",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(15.dp),
+                    )
+                }
+                IconButton(
+                    onClick = onDelete,
+                    modifier = Modifier.size(28.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "删除${asset.name}",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(15.dp),
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-private fun AddAssetDialog(
+private fun AssetEditorDialog(
+    initial: AssetEntity?,
     onDismiss: () -> Unit,
     onSave: (String, AssetCategory, String, String) -> Unit,
 ) {
-    var name by remember { mutableStateOf("") }
-    var value by remember { mutableStateOf("") }
-    var note by remember { mutableStateOf("") }
-    var category by remember { mutableStateOf(AssetCategories.all.first()) }
+    var name by remember(initial?.id) { mutableStateOf(initial?.name.orEmpty()) }
+    var value by remember(initial?.id) {
+        mutableStateOf(initial?.let { Formats.centsToInput(it.valueCents) }.orEmpty())
+    }
+    var note by remember(initial?.id) { mutableStateOf(initial?.note.orEmpty()) }
+    var category by remember(initial?.id) {
+        mutableStateOf(initial?.category ?: AssetCategories.all.first())
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("添加资产") },
+        title = { Text(if (initial == null) "添加资产" else "编辑资产") },
         text = {
             Column(
                 modifier = Modifier
@@ -352,7 +405,7 @@ private fun AddAssetDialog(
             TextButton(
                 onClick = { onSave(name, category, value, note) },
                 enabled = name.isNotBlank() && value.isNotBlank(),
-            ) { Text("保存") }
+            ) { Text(if (initial == null) "保存" else "保存修改") }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) { Text("取消") }
