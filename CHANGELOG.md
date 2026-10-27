@@ -2,10 +2,8 @@
 
 ## 1.2.4
 
-- 新增 Liquid Glass 实验室（Three.js WebGL2 试玩）
+- 新增 Liquid Glass 实验室
 - 修复了一些已知问题
-
-吃了一块曲奇饼。
 
 ## 1.2.3
 
