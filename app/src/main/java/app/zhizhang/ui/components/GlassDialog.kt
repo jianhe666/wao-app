@@ -28,8 +28,6 @@ fun GlassDialog(
 ) {
     Dialog(onDismissRequest = onDismissRequest) {
         val extra = MaterialTheme.zh
-        val haze = LocalHazeState.current
-        val hazeStyle = liquidHazeStyle(tintAlpha = 0.34f)
         val shape = RoundedCornerShape(26.dp)
         Box(
             modifier = Modifier
@@ -41,26 +39,12 @@ fun GlassDialog(
                     ambientColor = extra.glassShadow,
                     spotColor = extra.glassShadow,
                 )
-                .clip(shape)
-                .then(if (haze != null) Modifier.hazeEffect(haze, hazeStyle) else Modifier)
-                .background(
-                    Brush.verticalGradient(
-                        listOf(
-                            extra.glassTop.copy(alpha = 0.96f),
-                            extra.glassBottom.copy(alpha = 0.92f),
-                        ),
-                    ),
-                )
-                .border(
-                    width = 1.dp,
-                    brush = Brush.linearGradient(
-                        listOf(
-                            extra.glassBorder,
-                            MaterialTheme.colorScheme.secondary.copy(alpha = 0.22f),
-                            Color.White.copy(alpha = 0.34f),
-                        ),
-                    ),
+                .liquidGlass(
                     shape = shape,
+                    tint = extra.glassTop.copy(alpha = 0.34f),
+                    lensHeight = 12.dp,
+                    lensAmount = 26.dp,
+                    blurRadius = 8.dp,
                 )
                 .padding(20.dp),
         ) {

@@ -438,6 +438,8 @@ private fun AppBottomBar(
     onTab: (String) -> Unit,
 ) {
     val shape = RoundedCornerShape(26.dp)
+    val haze = LocalHazeState.current
+    val hazeStyle = liquidHazeStyle(tintAlpha = 0.30f)
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -449,12 +451,19 @@ private fun AppBottomBar(
                 .fillMaxWidth()
                 .height(68.dp)
                 .shadow(8.dp, shape, ambientColor = MaterialTheme.zh.glassShadow, spotColor = MaterialTheme.zh.glassShadow)
-                .liquidGlass(
-                    shape = shape,
-                    tint = MaterialTheme.zh.glassTop.copy(alpha = 0.16f),
-                    lensHeight = 14.dp,
-                    lensAmount = 28.dp,
-                    blurRadius = 8.dp,
+                .then(if (haze != null) Modifier.hazeEffect(haze, hazeStyle) else Modifier)
+                .background(
+                    Brush.verticalGradient(
+                        listOf(
+                            MaterialTheme.zh.glassTop.copy(alpha = 0.18f),
+                            MaterialTheme.zh.glassBottom.copy(alpha = 0.07f),
+                        ),
+                    ),
+                )
+                .border(
+                    0.7.dp,
+                    Color.White.copy(alpha = 0.18f),
+                    shape,
                 ),
             verticalAlignment = Alignment.CenterVertically,
         ) {

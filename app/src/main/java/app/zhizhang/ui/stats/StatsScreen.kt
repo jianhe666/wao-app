@@ -39,6 +39,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -73,15 +76,17 @@ fun StatsScreen() {
     val today = LocalDate.now(zone)
     val currentMonth = YearMonth.from(today)
     var showMonthPicker by remember { mutableStateOf(false) }
+    val statusTop = with(LocalDensity.current) {
+        WindowInsets.statusBars.getTop(this).toDp()
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .statusBarsPadding()
             .verticalScroll(rememberScrollState())
             .padding(start = 20.dp, end = 20.dp, bottom = 120.dp),
     ) {
-        Spacer(Modifier.height(14.dp))
+        Spacer(Modifier.height(statusTop + 14.dp))
         Text(
             text = "统计",
             style = MaterialTheme.typography.headlineMedium,

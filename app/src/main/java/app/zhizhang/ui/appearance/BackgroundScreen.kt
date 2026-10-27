@@ -255,7 +255,7 @@ fun BackgroundScreen(onBack: () -> Unit) {
 
         Spacer(Modifier.height(22.dp))
         Text(
-            text = "玻璃透明度  ${(glassTransparency / 0.75f * 100).roundToInt()}%",
+            text = "玻璃透明度  ${(glassTransparency * 100).roundToInt()}%",
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -275,7 +275,7 @@ fun BackgroundScreen(onBack: () -> Unit) {
                 value = glassTransparency,
                 onValueChange = { glassTransparency = it },
                 onValueChangeFinished = { viewModel.setGlassTransparency(glassTransparency) },
-                valueRange = 0f..0.75f,
+                valueRange = 0f..1f,
             )
         }
         Spacer(Modifier.height(34.dp))

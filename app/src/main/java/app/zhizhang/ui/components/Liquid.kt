@@ -103,7 +103,8 @@ fun GlassPanel(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val extra = MaterialTheme.zh
-    val clarity = (1f - LocalGlassTransparency.current * 0.82f).coerceIn(0.25f, 1f)
+    val transparency = LocalGlassTransparency.current.coerceIn(0f, 1f)
+    val opacity = 1f - transparency
     val backdrop = LocalGlassBackdrop.current
     val canUseLens = backdrop != null &&
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
@@ -130,11 +131,11 @@ fun GlassPanel(
                     shape = { cornerShape },
                     effects = {
                         vibrancy()
-                        blur(8.dp.toPx())
+                        blur((2.dp + 16.dp * opacity).toPx())
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                             lens(
                                 refractionHeight = 16.dp.toPx(),
-                                refractionAmount = (34.dp * (0.55f + 0.45f * clarity)).toPx(),
+                                refractionAmount = (34.dp * (0.50f + 0.55f * opacity)).toPx(),
                                 depthEffect = true,
                                 chromaticAberration = true,
                             )
@@ -142,7 +143,7 @@ fun GlassPanel(
                     },
                     onDrawSurface = {
                         // A very light tint; the backdrop and lens carry the material.
-                        drawRect(extra.glassTop.copy(alpha = 0.20f * clarity))
+                        drawRect(extra.glassTop.copy(alpha = (0.06f + 0.24f * opacity)))
                     },
                 )
                 .then(clickable),
@@ -183,8 +184,8 @@ fun GlassPanel(
                 .background(
                     Brush.linearGradient(
                         listOf(
-                            extra.glassTop.copy(alpha = (if (haze != null) 0.38f else 0.52f) * clarity),
-                            extra.glassBottom.copy(alpha = (if (haze != null) 0.20f else 0.32f) * clarity),
+                            extra.glassTop.copy(alpha = if (haze != null) (0.12f + 0.30f * opacity) else (0.22f + 0.34f * opacity)),
+                            extra.glassBottom.copy(alpha = if (haze != null) (0.05f + 0.18f * opacity) else (0.10f + 0.22f * opacity)),
                         ),
                     ),
                 )

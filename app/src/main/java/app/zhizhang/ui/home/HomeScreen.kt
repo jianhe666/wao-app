@@ -55,6 +55,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.ui.unit.dp
 import java.text.Collator
 import androidx.compose.ui.unit.sp
@@ -123,6 +126,9 @@ fun LedgerScreen(
                 )
             }
     }
+    val statusTop = with(LocalDensity.current) {
+        WindowInsets.statusBars.getTop(this).toDp()
+    }
     val collator = remember { Collator.getInstance(Locale.CHINA) }
     val sortedTransactions = remember(filteredTransactions, filter.sort, collator) {
         val base = when (filter.sort) {
@@ -140,10 +146,13 @@ fun LedgerScreen(
     val showGrouped = filter.sort == LedgerSort.TIME && !filter.ascending
 
     LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .statusBarsPadding(),
-        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 10.dp, bottom = 120.dp),
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(
+            start = 20.dp,
+            end = 20.dp,
+            top = statusTop + 10.dp,
+            bottom = 120.dp,
+        ),
     ) {
         item(key = "header") {
             LedgerHeader(
@@ -468,7 +477,7 @@ private fun LedgerFilterSheet(
                     blurRadius = 6.dp,
                 )
                 .navigationBarsPadding()
-                .padding(start = 20.dp, end = 20.dp, bottom = 20.dp),
+                .padding(start = 20.dp, top = 14.dp, end = 20.dp, bottom = 20.dp),
         ) {
             Text(
                 text = "筛选流水",

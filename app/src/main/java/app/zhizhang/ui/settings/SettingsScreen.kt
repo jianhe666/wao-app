@@ -87,6 +87,9 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.ui.unit.sp
 import app.zhizhang.data.BaiduRemoteBackup
 import kotlin.math.roundToInt
@@ -216,6 +219,9 @@ fun SettingsScreen(
     var accessibilityEnabled by remember {
         mutableStateOf(isPaymentAccessibilityEnabled(context))
     }
+    val statusTop = with(LocalDensity.current) {
+        WindowInsets.statusBars.getTop(this).toDp()
+    }
     val aiPulse = remember { Animatable(0f) }
     LaunchedEffect(highlightAi) {
         if (highlightAi) {
@@ -287,11 +293,10 @@ fun SettingsScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .statusBarsPadding()
             .verticalScroll(rememberScrollState())
             .padding(start = 20.dp, end = 20.dp, bottom = 120.dp),
     ) {
-        Spacer(Modifier.height(10.dp))
+        Spacer(Modifier.height(statusTop + 10.dp))
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,

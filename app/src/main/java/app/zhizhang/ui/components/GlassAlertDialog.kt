@@ -42,8 +42,6 @@ fun GlassAlertDialog(
 ) {
     Dialog(onDismissRequest = onDismissRequest, properties = properties) {
         val extra = MaterialTheme.zh
-        val haze = LocalHazeState.current
-        val hazeStyle = liquidHazeStyle(tintAlpha = 0.34f)
         Column(
             modifier = modifier
                 .fillMaxWidth()
@@ -54,26 +52,12 @@ fun GlassAlertDialog(
                     ambientColor = extra.glassShadow,
                     spotColor = extra.glassShadow,
                 )
-                .clip(shape)
-                .then(if (haze != null) Modifier.hazeEffect(haze, hazeStyle) else Modifier)
-                .background(
-                    Brush.verticalGradient(
-                        listOf(
-                            extra.glassTop.copy(alpha = 0.96f),
-                            extra.glassBottom.copy(alpha = 0.93f),
-                        ),
-                    ),
-                )
-                .border(
-                    width = 1.dp,
-                    brush = Brush.linearGradient(
-                        listOf(
-                            extra.glassBorder,
-                            MaterialTheme.colorScheme.secondary.copy(alpha = 0.22f),
-                            Color.White.copy(alpha = 0.34f),
-                        ),
-                    ),
+                .liquidGlass(
                     shape = shape,
+                    tint = extra.glassTop.copy(alpha = 0.34f),
+                    lensHeight = 12.dp,
+                    lensAmount = 26.dp,
+                    blurRadius = 8.dp,
                 )
                 .padding(horizontal = 20.dp, vertical = 18.dp),
         ) {

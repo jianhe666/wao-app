@@ -261,7 +261,7 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setGlassTransparency(value: Float) {
         context.settingsDataStore.edit {
-            it[GLASS_TRANSPARENCY] = value.coerceIn(0f, 0.75f)
+            it[GLASS_TRANSPARENCY] = value.coerceIn(0f, 1f)
         }
     }
 

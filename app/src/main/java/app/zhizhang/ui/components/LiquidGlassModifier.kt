@@ -37,7 +37,9 @@ fun Modifier.liquidGlass(
 ): Modifier {
     val backdrop = LocalGlassBackdrop.current
     val haze = LocalHazeState.current
-    val clarity = (1f - LocalGlassTransparency.current * 0.82f).coerceIn(0.25f, 1f)
+    val transparency = LocalGlassTransparency.current.coerceIn(0f, 1f)
+    val opacity = 1f - transparency
+    val clarity = (0.25f + 0.75f * opacity).coerceIn(0.25f, 1f)
     val canLens = backdrop != null &&
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
         !isRobolectric
@@ -50,11 +52,11 @@ fun Modifier.liquidGlass(
                 shape = { cornerShape },
                 effects = {
                     vibrancy()
-                    blur((blurRadius * (0.55f + 0.45f * clarity)).toPx())
+                    blur((blurRadius * (0.20f + 1.9f * opacity)).toPx())
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                         lens(
                             refractionHeight = lensHeight.toPx(),
-                            refractionAmount = lensAmount.toPx(),
+                            refractionAmount = (lensAmount * (0.55f + 0.55f * opacity)).toPx(),
                             depthEffect = true,
                             chromaticAberration = true,
                         )
@@ -62,7 +64,7 @@ fun Modifier.liquidGlass(
                 },
                 onDrawSurface = {
                     if (tint.alpha > 0f) {
-                        drawRect(tint.copy(alpha = (tint.alpha * 1.35f).coerceAtMost(0.42f) * clarity))
+                        drawRect(tint.copy(alpha = (tint.alpha * (0.35f + 0.9f * opacity)).coerceIn(0.035f, 0.42f)))
                     }
                 },
             )
@@ -74,8 +76,8 @@ fun Modifier.liquidGlass(
             .background(
                 Brush.verticalGradient(
                     listOf(
-                        MaterialTheme.zh.glassTop.copy(alpha = 0.34f * clarity),
-                        MaterialTheme.zh.glassBottom.copy(alpha = 0.18f * clarity),
+                        MaterialTheme.zh.glassTop.copy(alpha = (0.12f + 0.32f * opacity) * clarity),
+                        MaterialTheme.zh.glassBottom.copy(alpha = (0.05f + 0.20f * opacity) * clarity),
                     ),
                 ),
             )
