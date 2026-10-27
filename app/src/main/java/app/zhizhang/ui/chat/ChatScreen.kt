@@ -231,16 +231,6 @@ fun HomeChatScreen(
             Box(Modifier.weight(1f).fillMaxWidth())
         } else {
             Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
-                if (state.messages.size <= 1 && !state.sending) {
-                    Image(
-                        painter = painterResource(R.drawable.app_icon),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .size(148.dp)
-                            .alpha(0.05f),
-                    )
-                }
                 LazyColumn(
                     state = listState,
                     modifier = Modifier.fillMaxSize(),

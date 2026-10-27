@@ -5,6 +5,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -13,6 +14,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
@@ -22,7 +24,9 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import app.zhizhang.R
 import app.zhizhang.ui.theme.zh
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -72,88 +76,99 @@ fun BackgroundArtwork(
 private fun DefaultArtwork(alpha: Float) {
     val extra = MaterialTheme.zh
     val background = MaterialTheme.colorScheme.background
-    Canvas(Modifier.fillMaxSize().alpha(alpha)) {
-        val w = size.width
-        val h = size.height
-        drawRect(
-            brush = Brush.verticalGradient(
-                listOf(background, extra.canvasBottom),
-            ),
-        )
-        drawCircle(
-            brush = Brush.radialGradient(
-                colors = listOf(extra.auraBlue.copy(alpha = 0.56f), Color.Transparent),
-                center = Offset(w * 0.96f, h * 0.10f),
+    Box(Modifier.fillMaxSize().alpha(alpha)) {
+        Canvas(Modifier.fillMaxSize()) {
+            val w = size.width
+            val h = size.height
+            drawRect(
+                brush = Brush.verticalGradient(
+                    listOf(background, extra.canvasBottom),
+                ),
+            )
+            drawCircle(
+                brush = Brush.radialGradient(
+                    colors = listOf(extra.auraBlue.copy(alpha = 0.56f), Color.Transparent),
+                    center = Offset(w * 0.96f, h * 0.10f),
+                    radius = w * 0.78f,
+                ),
                 radius = w * 0.78f,
-            ),
-            radius = w * 0.78f,
-            center = Offset(w * 0.96f, h * 0.10f),
-        )
-        drawCircle(
-            brush = Brush.radialGradient(
-                colors = listOf(extra.auraMint.copy(alpha = 0.55f), Color.Transparent),
-                center = Offset(w * 0.02f, h * 0.03f),
+                center = Offset(w * 0.96f, h * 0.10f),
+            )
+            drawCircle(
+                brush = Brush.radialGradient(
+                    colors = listOf(extra.auraMint.copy(alpha = 0.55f), Color.Transparent),
+                    center = Offset(w * 0.02f, h * 0.03f),
+                    radius = w * 0.76f,
+                ),
                 radius = w * 0.76f,
-            ),
-            radius = w * 0.76f,
-            center = Offset(w * 0.02f, h * 0.03f),
-        )
-        drawCircle(
-            brush = Brush.radialGradient(
-                colors = listOf(extra.auraPeach.copy(alpha = 0.42f), Color.Transparent),
-                center = Offset(w * 0.06f, h * 0.78f),
+                center = Offset(w * 0.02f, h * 0.03f),
+            )
+            drawCircle(
+                brush = Brush.radialGradient(
+                    colors = listOf(extra.auraPeach.copy(alpha = 0.42f), Color.Transparent),
+                    center = Offset(w * 0.06f, h * 0.78f),
+                    radius = w * 0.74f,
+                ),
                 radius = w * 0.74f,
-            ),
-            radius = w * 0.74f,
-            center = Offset(w * 0.06f, h * 0.78f),
-        )
-        drawCircle(
-            brush = Brush.radialGradient(
-                colors = listOf(extra.auraBlue.copy(alpha = 0.22f), Color.Transparent),
-                center = Offset(w * 0.18f, h * 0.46f),
+                center = Offset(w * 0.06f, h * 0.78f),
+            )
+            drawCircle(
+                brush = Brush.radialGradient(
+                    colors = listOf(extra.auraBlue.copy(alpha = 0.22f), Color.Transparent),
+                    center = Offset(w * 0.18f, h * 0.46f),
+                    radius = w * 0.54f,
+                ),
                 radius = w * 0.54f,
-            ),
-            radius = w * 0.54f,
-            center = Offset(w * 0.18f, h * 0.46f),
-        )
-        drawCircle(
-            brush = Brush.radialGradient(
-                colors = listOf(extra.auraPeach.copy(alpha = 0.16f), Color.Transparent),
-                center = Offset(w * 0.86f, h * 0.58f),
+                center = Offset(w * 0.18f, h * 0.46f),
+            )
+            drawCircle(
+                brush = Brush.radialGradient(
+                    colors = listOf(extra.auraPeach.copy(alpha = 0.16f), Color.Transparent),
+                    center = Offset(w * 0.86f, h * 0.58f),
+                    radius = w * 0.48f,
+                ),
                 radius = w * 0.48f,
-            ),
-            radius = w * 0.48f,
-            center = Offset(w * 0.86f, h * 0.58f),
-        )
-        drawCircle(
-            brush = Brush.radialGradient(
-                colors = listOf(extra.auraLilac.copy(alpha = 0.34f), Color.Transparent),
-                center = Offset(w * 0.92f, h * 0.92f),
+                center = Offset(w * 0.86f, h * 0.58f),
+            )
+            drawCircle(
+                brush = Brush.radialGradient(
+                    colors = listOf(extra.auraLilac.copy(alpha = 0.34f), Color.Transparent),
+                    center = Offset(w * 0.92f, h * 0.92f),
+                    radius = w * 0.64f,
+                ),
                 radius = w * 0.64f,
-            ),
-            radius = w * 0.64f,
-            center = Offset(w * 0.92f, h * 0.92f),
-        )
-        drawCircle(
-            brush = Brush.radialGradient(
-                colors = listOf(Color.White.copy(alpha = 0.26f), Color.Transparent),
-                center = Offset(w * 0.55f, h * 0.18f),
+                center = Offset(w * 0.92f, h * 0.92f),
+            )
+            drawCircle(
+                brush = Brush.radialGradient(
+                    colors = listOf(Color.White.copy(alpha = 0.26f), Color.Transparent),
+                    center = Offset(w * 0.55f, h * 0.18f),
+                    radius = w * 0.72f,
+                ),
                 radius = w * 0.72f,
-            ),
-            radius = w * 0.72f,
-            center = Offset(w * 0.55f, h * 0.18f),
-        )
-        drawCircle(
-            color = Color.White.copy(alpha = 0.13f),
-            radius = w * 0.52f,
-            center = Offset(w * 1.02f, h * 0.08f),
-            style = androidx.compose.ui.graphics.drawscope.Stroke(width = 1.dp.toPx()),
-        )
-        drawCircle(
-            color = Color.White.copy(alpha = 0.09f),
-            radius = w * 0.40f,
-            center = Offset(w * 1.02f, h * 0.08f),
-            style = androidx.compose.ui.graphics.drawscope.Stroke(width = 1.dp.toPx()),
+                center = Offset(w * 0.55f, h * 0.18f),
+            )
+            drawCircle(
+                color = Color.White.copy(alpha = 0.13f),
+                radius = w * 0.52f,
+                center = Offset(w * 1.02f, h * 0.08f),
+                style = androidx.compose.ui.graphics.drawscope.Stroke(width = 1.dp.toPx()),
+            )
+            drawCircle(
+                color = Color.White.copy(alpha = 0.09f),
+                radius = w * 0.40f,
+                center = Offset(w * 1.02f, h * 0.08f),
+                style = androidx.compose.ui.graphics.drawscope.Stroke(width = 1.dp.toPx()),
+            )
+        }
+        // Logo 属于默认背景图案，不再浮在聊天内容上。
+        Image(
+            painter = painterResource(R.drawable.app_icon),
+            contentDescription = null,
+            modifier = Modifier
+                .align(Alignment.Center)
+                .size(260.dp)
+                .alpha(0.055f),
         )
     }
 }

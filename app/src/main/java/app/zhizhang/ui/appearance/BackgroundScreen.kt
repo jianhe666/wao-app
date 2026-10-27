@@ -205,7 +205,7 @@ fun BackgroundScreen(onBack: () -> Unit) {
 
         Spacer(Modifier.height(20.dp))
         Text(
-            text = "背景不透明度  ${(opacity * 100).roundToInt()}%",
+            text = "背景图案不透明度  ${(opacity * 100).roundToInt()}%",
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -216,7 +216,7 @@ fun BackgroundScreen(onBack: () -> Unit) {
             valueRange = 0f..1f,
         )
         Text(
-            text = "调低后仍会保留底色，文字和玻璃卡片更清楚。",
+            text = "只调低背景图案，文字和按钮保持清晰；底色仍然保留。",
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

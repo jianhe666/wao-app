@@ -107,6 +107,12 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     private val events = Channel<SettingsEvent>(Channel.BUFFERED)
     val eventFlow = events.receiveAsFlow()
 
+    val updateUseMirror = settings.updateUseMirror.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = false,
+    )
+
     val baiduState = baiduRepository.state.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
@@ -459,6 +465,10 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     fun dismissUpdate() {
         _updateState.value = UpdateUiState()
+    }
+
+    fun setUpdateUseMirror(enabled: Boolean) {
+        viewModelScope.launch { settings.setUpdateUseMirror(enabled) }
     }
 
     fun exportCsv() {

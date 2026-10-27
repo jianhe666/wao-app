@@ -70,6 +70,7 @@ import app.zhizhang.R
 import app.zhizhang.data.GithubRelease
 import app.zhizhang.data.UpdateAutoCheckStore
 import app.zhizhang.data.UpdateChecker
+import app.zhizhang.ui.components.BackgroundContrast
 import app.zhizhang.ui.components.GlassDialog
 import app.zhizhang.ui.components.MarkdownText
 import app.zhizhang.ui.chat.HomeChatScreen
@@ -89,6 +90,7 @@ import app.zhizhang.ui.review.ReviewScreen
 import app.zhizhang.ui.importflow.ImportScreen
 import app.zhizhang.ui.settings.SettingsScreen
 import app.zhizhang.ui.stats.StatsScreen
+import app.zhizhang.ui.theme.ZhizhangTheme
 import app.zhizhang.ui.theme.zh
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
@@ -141,6 +143,20 @@ fun ZhizhangRoot(
     val backgroundId by settings.backgroundId.collectAsStateWithLifecycle(initialValue = "default")
     val backgroundOpacity by settings.backgroundOpacity.collectAsStateWithLifecycle(initialValue = 1f)
     val customBackgroundPath by settings.customBackgroundPath.collectAsStateWithLifecycle(initialValue = "")
+    val updateUseMirror by settings.updateUseMirror.collectAsStateWithLifecycle(initialValue = false)
+    var customBackgroundNeedsDarkText by remember { mutableStateOf(false) }
+    LaunchedEffect(backgroundId, customBackgroundPath, backgroundOpacity) {
+        customBackgroundNeedsDarkText = if (backgroundId == "custom") {
+            BackgroundContrast.customNeedsDarkText(customBackgroundPath, backgroundOpacity)
+        } else {
+            false
+        }
+    }
+    val darkContent = when (backgroundId) {
+        "night" -> BackgroundContrast.presetNeedsDarkText(backgroundId, backgroundOpacity)
+        "custom" -> customBackgroundNeedsDarkText
+        else -> false
+    }
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
@@ -207,6 +223,7 @@ fun ZhizhangRoot(
         }
     }
 
+    ZhizhangTheme(darkTheme = darkContent) {
     Box(modifier = Modifier.fillMaxSize()) {
         CompositionLocalProvider(LocalHazeState provides hazeState) {
         Box(
@@ -378,7 +395,12 @@ fun ZhizhangRoot(
                             context.startActivity(
                                 Intent(
                                     Intent.ACTION_VIEW,
-                                    Uri.parse(release.apkUrl ?: release.releaseUrl),
+                                    Uri.parse(
+                                        UpdateChecker.downloadUrl(
+                                            release.apkUrl ?: release.releaseUrl,
+                                            updateUseMirror,
+                                        ),
+                                    ),
                                 ),
                             )
                         }
@@ -387,6 +409,7 @@ fun ZhizhangRoot(
                 ) { Text(if (release.apkUrl == null) "打开 GitHub" else "下载 APK") }
             }
         }
+    }
     }
 }
 

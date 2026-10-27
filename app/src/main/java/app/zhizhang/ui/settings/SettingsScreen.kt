@@ -99,6 +99,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.zhizhang.BuildConfig
 import app.zhizhang.data.GithubRelease
+import app.zhizhang.data.UpdateChecker
 import app.zhizhang.R
 import app.zhizhang.data.BaiduState
 import app.zhizhang.data.Formats
@@ -132,6 +133,7 @@ fun SettingsScreen(
     val baiduBackingUp by viewModel.baiduBackingUp.collectAsStateWithLifecycle()
     val baiduRestore by viewModel.baiduRestore.collectAsStateWithLifecycle()
     val updateState by viewModel.updateState.collectAsStateWithLifecycle()
+    val updateUseMirror by viewModel.updateUseMirror.collectAsStateWithLifecycle()
     val reminder by viewModel.reminderState.collectAsStateWithLifecycle()
     val autoCaptureAllApps by viewModel.autoCaptureAllApps.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -835,6 +837,28 @@ fun SettingsScreen(
             )
             SettingsDivider()
             SettingsRow(
+                icon = "restore",
+                iconTint = MaterialTheme.colorScheme.secondary,
+                title = "国内镜像下载",
+                subtitle = "通过 ghfast.top 加速更新包",
+                showChevron = false,
+                trailing = {
+                    Switch(
+                        checked = updateUseMirror,
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
+                            checkedTrackColor = MaterialTheme.colorScheme.primary,
+                            uncheckedThumbColor = MaterialTheme.colorScheme.surface,
+                            uncheckedTrackColor = MaterialTheme.colorScheme.outlineVariant,
+                            uncheckedBorderColor = MaterialTheme.colorScheme.outline,
+                        ),
+                        onCheckedChange = viewModel::setUpdateUseMirror,
+                    )
+                },
+                onClick = { viewModel.setUpdateUseMirror(!updateUseMirror) },
+            )
+            SettingsDivider()
+            SettingsRow(
                 icon = "export",
                 iconTint = MaterialTheme.colorScheme.primary,
                 title = "GitHub 仓库",
@@ -1121,7 +1145,10 @@ fun SettingsScreen(
                     onClick = {
                         openUrl(
                             context = context,
-                            url = release.apkUrl ?: release.releaseUrl,
+                            url = UpdateChecker.downloadUrl(
+                                release.apkUrl ?: release.releaseUrl,
+                                updateUseMirror,
+                            ),
                             onError = onShowMessage,
                         )
                         viewModel.dismissUpdate()

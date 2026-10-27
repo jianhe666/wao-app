@@ -95,6 +95,10 @@ class SettingsRepository(private val context: Context) {
         prefs[CUSTOM_BACKGROUND_PATH] ?: ""
     }
 
+    val updateUseMirror: Flow<Boolean> = context.settingsDataStore.data.map { prefs ->
+        prefs[UPDATE_USE_MIRROR] ?: false
+    }
+
 
     suspend fun snapshotJson(): JSONObject {
         val accounts = customAccounts.first()
@@ -133,6 +137,7 @@ class SettingsRepository(private val context: Context) {
             put("backgroundId", backgroundId.first())
             put("backgroundOpacity", backgroundOpacity.first())
             put("customBackgroundPath", customBackgroundPath.first())
+            put("updateUseMirror", updateUseMirror.first())
         }
     }
 
@@ -161,6 +166,7 @@ class SettingsRepository(private val context: Context) {
             prefs[BACKGROUND_OPACITY] = json.optDouble("backgroundOpacity", 1.0)
                 .toFloat().coerceIn(0f, 1f)
             prefs[CUSTOM_BACKGROUND_PATH] = json.optString("customBackgroundPath")
+            prefs[UPDATE_USE_MIRROR] = json.optBoolean("updateUseMirror", false)
         }
     }
 
@@ -244,6 +250,10 @@ class SettingsRepository(private val context: Context) {
             prefs[BACKGROUND_ID] = id
             if (customPath != null) prefs[CUSTOM_BACKGROUND_PATH] = customPath
         }
+    }
+
+    suspend fun setUpdateUseMirror(enabled: Boolean) {
+        context.settingsDataStore.edit { it[UPDATE_USE_MIRROR] = enabled }
     }
 
     suspend fun setBackgroundOpacity(value: Float) {
@@ -358,6 +368,7 @@ class SettingsRepository(private val context: Context) {
         private val BACKGROUND_ID = stringPreferencesKey("background_id")
         private val BACKGROUND_OPACITY = floatPreferencesKey("background_opacity")
         private val CUSTOM_BACKGROUND_PATH = stringPreferencesKey("custom_background_path")
+        private val UPDATE_USE_MIRROR = booleanPreferencesKey("update_use_mirror")
 
         const val DEFAULT_AI_BASE_URL = "https://api.deepseek.com"
         const val DEFAULT_AI_MODEL = "deepseek-flash"

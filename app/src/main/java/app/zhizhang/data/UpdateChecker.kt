@@ -138,6 +138,13 @@ object UpdateChecker {
 
     private val APK_LINK = Regex("""href="([^"]+/releases/download/[^"]+\.apk)"""")
 
+    const val MIRROR_PREFIX = "https://ghfast.top/"
+
+    fun downloadUrl(url: String, useMirror: Boolean): String {
+        if (!useMirror || url.isBlank() || !url.startsWith("https://github.com/")) return url
+        return MIRROR_PREFIX + url
+    }
+
     /** 返回 latest 是否比 current 新。支持 v1.0.1 / 1.0.1 两种写法。 */
     fun isNewer(latest: String, current: String): Boolean {
         val left = versionParts(latest)
