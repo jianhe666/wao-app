@@ -123,7 +123,6 @@ fun SettingsScreen(
     onOpenAiCategory: () -> Unit,
     onOpenAssets: () -> Unit,
     onOpenBackground: () -> Unit,
-    onOpenLiquidGlass: () -> Unit,
     highlightAi: Boolean = false,
     onHighlightAiConsumed: () -> Unit = {},
 ) {
@@ -340,14 +339,7 @@ fun SettingsScreen(
                 subtitle = "预设、自己的照片和透明度",
                 onClick = onOpenBackground,
             )
-            SettingsDivider()
-            SettingsRow(
-                icon = "spark",
-                iconTint = MaterialTheme.colorScheme.secondary,
-                title = "Liquid Glass 实验室",
-                subtitle = "Three.js WebGL2 试用",
-                onClick = onOpenLiquidGlass,
-            )
+
         }
 
         Spacer(Modifier.height(20.dp))

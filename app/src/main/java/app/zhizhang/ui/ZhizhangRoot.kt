@@ -84,7 +84,6 @@ import app.zhizhang.ui.reimbursements.ReimbursementsScreen
 import app.zhizhang.ui.aicategory.AiCategoryHistoryScreen
 import app.zhizhang.ui.aicategory.AiCategoryScreen
 import app.zhizhang.ui.appearance.BackgroundScreen
-import app.zhizhang.ui.lab.LiquidGlassLabScreen
 import app.zhizhang.ui.assets.AssetsScreen
 import app.zhizhang.ui.categories.CategoryManagerScreen
 import app.zhizhang.ui.review.ReviewScreen
@@ -111,7 +110,6 @@ private object Routes {
     const val AI_CATEGORY_HISTORY = "ai_category_history"
     const val ASSETS = "assets"
     const val BACKGROUND = "background"
-    const val LIQUID_GLASS_LAB = "liquid_glass_lab"
     const val EDITOR = "editor?txId={txId}"
 
     fun editor(id: Long? = null): String = if (id == null) "editor" else "editor?txId=$id"
@@ -309,7 +307,6 @@ fun ZhizhangRoot(
                         onOpenAiCategory = { navController.navigate(Routes.AI_CATEGORY) },
                         onOpenAssets = { navController.navigate(Routes.ASSETS) },
                         onOpenBackground = { navController.navigate(Routes.BACKGROUND) },
-                        onOpenLiquidGlass = { navController.navigate(Routes.LIQUID_GLASS_LAB) },
                         highlightAi = highlightAiRow,
                         onHighlightAiConsumed = { highlightAiRow = false },
                     )
@@ -331,9 +328,6 @@ fun ZhizhangRoot(
                 }
                 composable(Routes.BACKGROUND) {
                     BackgroundScreen(onBack = { navController.popBackStack() })
-                }
-                composable(Routes.LIQUID_GLASS_LAB) {
-                    LiquidGlassLabScreen(onBack = { navController.popBackStack() })
                 }
                 composable(Routes.IMPORT) {
                     ImportScreen(

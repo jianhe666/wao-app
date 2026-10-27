@@ -1,6 +1,9 @@
 package app.zhizhang.ui.components
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -88,27 +91,35 @@ fun GlassPanel(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val extra = MaterialTheme.zh
+    val haze = LocalHazeState.current
+    val hazeStyle = liquidHazeStyle(tintAlpha = 0.30f)
     Box(
         modifier = modifier
             .shadow(
-                elevation = 4.dp,
+                elevation = 12.dp,
                 shape = shape,
                 ambientColor = extra.glassShadow,
                 spotColor = extra.glassShadow,
             )
             .clip(shape)
+            // Real backdrop blur below the content; no flat white sheet.
+            .then(if (haze != null) Modifier.hazeEffect(haze, hazeStyle) else Modifier)
             .background(
                 Brush.linearGradient(
-                    listOf(extra.glassTop, extra.glassBottom),
+                    listOf(
+                        extra.glassTop.copy(alpha = if (haze != null) 0.30f else 0.48f),
+                        extra.glassBottom.copy(alpha = if (haze != null) 0.14f else 0.28f),
+                    ),
                 ),
             )
             .border(
-                width = 1.dp,
+                width = 0.8.dp,
                 brush = Brush.linearGradient(
                     colors = listOf(
-                        extra.glassBorder,
-                        MaterialTheme.colorScheme.secondary.copy(alpha = 0.16f),
-                        extra.gold.copy(alpha = 0.30f),
+                        Color.White.copy(alpha = 0.38f),
+                        MaterialTheme.colorScheme.secondary.copy(alpha = 0.10f),
+                        Color.White.copy(alpha = 0.08f),
+                        extra.gold.copy(alpha = 0.18f),
                     ),
                 ),
                 shape = shape,
@@ -121,19 +132,37 @@ fun GlassPanel(
                 },
             ),
     ) {
-        Box(
-            modifier = Modifier
-                .matchParentSize()
-                .background(
-                    Brush.linearGradient(
-                        colors = listOf(
-                            extra.glassHighlight.copy(alpha = 0.56f),
-                            Color.Transparent,
-                            Color.Transparent,
-                        ),
+        // Broad, soft top-left sheen.
+        Canvas(Modifier.matchParentSize()) {
+            drawRoundRect(
+                brush = Brush.radialGradient(
+                    colors = listOf(
+                        Color.White.copy(alpha = 0.10f),
+                        Color.Transparent,
                     ),
+                    center = Offset(size.width * 0.18f, 0f),
+                    radius = size.width * 0.72f,
                 ),
-        )
+                cornerRadius = CornerRadius(24.dp.toPx(), 24.dp.toPx()),
+                size = Size(size.width, size.height),
+            )
+            // A thin, broken rim catches light; it is deliberately not a full white outline.
+            drawRoundRect(
+                brush = Brush.linearGradient(
+                    colors = listOf(
+                        Color.White.copy(alpha = 0.32f),
+                        Color.Transparent,
+                        Color.Transparent,
+                        Color(0x334E6EA8),
+                    ),
+                    start = Offset(0f, 0f),
+                    end = Offset(size.width, size.height),
+                ),
+                cornerRadius = CornerRadius(24.dp.toPx(), 24.dp.toPx()),
+                size = Size(size.width, size.height),
+                style = Stroke(width = 0.8.dp.toPx()),
+            )
+        }
         Column(
             modifier = Modifier.padding(contentPadding),
             content = content,
