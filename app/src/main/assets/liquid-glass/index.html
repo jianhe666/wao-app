@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>哇哦记账 · Liquid Glass R3</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main id="viewport">
+    <section id="stage" aria-label="Liquid Glass prototype 1080 by 1920">
+      <canvas id="gl" width="1080" height="1920" aria-hidden="true"></canvas>
+
+      <!-- 03 CONTENT: all text, icons and hit targets live above the glass. -->
+      <div class="content">
+        <div class="statusbar">
+          <span>9:41</span>
+          <span class="status-right">5G&nbsp;&nbsp;◒&nbsp;&nbsp;▮</span>
+        </div>
+
+        <header class="topbar">
+          <div>
+            <div class="eyebrow">WEDNESDAY · 28 OCT</div>
+            <h1>哇哦记账<span class="brand-dot">.</span></h1>
+          </div>
+          <button class="icon-button" id="settingsButton" aria-label="设置">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z"/><path d="m19.4 15 .1.1a1.7 1.7 0 0 1-2.4 2.4l-.1-.1a1.7 1.7 0 0 0-2.9 1.2v.2a1.7 1.7 0 0 1-3.4 0v-.2a1.7 1.7 0 0 0-2.9-1.2l-.1.1a1.7 1.7 0 1 1-2.4-2.4l.1-.1A1.7 1.7 0 0 0 4.2 12a1.7 1.7 0 0 1 0-3.4h.2a1.7 1.7 0 0 0 1.2-2.9l-.1-.1a1.7 1.7 0 0 1 2.4-2.4l.1.1A1.7 1.7 0 0 0 11 2.1v-.2a1.7 1.7 0 0 1 3.4 0v.2a1.7 1.7 0 0 0 2.9 1.2l.1-.1a1.7 1.7 0 1 1 2.4 2.4l-.1.1a1.7 1.7 0 0 0 1.2 2.9h.2a1.7 1.7 0 0 1 0 3.4h-.2a1.7 1.7 0 0 0-1.5 1Z"/></svg>
+          </button>
+        </header>
+
+        <div class="summary-copy">
+          <div class="summary-top">
+            <span class="label">本月支出</span>
+            <span class="trend">↓ 8.2%</span>
+          </div>
+          <div class="amount"><span class="currency">¥</span>6,482<span class="cents">.30</span></div>
+          <div class="summary-bottom">
+            <div><span class="muted">预算剩余</span><strong>¥2,517.70</strong></div>
+            <div class="budgetbar"><i></i><i></i><i></i><i></i><i class="off"></i></div>
+            <span class="muted">72%</span>
+          </div>
+        </div>
+
+        <div class="recent-head">
+          <h2>最近流水 <span>24</span></h2>
+          <button class="text-button" id="allButton">查看全部 <span>↗</span></button>
+        </div>
+
+        <div class="transactions">
+          <article class="tx">
+            <span class="tx-icon food">🍜</span>
+            <div class="tx-main"><strong>阿良面馆</strong><span>餐饮 · 12:42</span></div>
+            <div class="tx-money"><strong>− ¥ 32.00</strong><span>微信</span></div>
+          </article>
+          <article class="tx">
+            <span class="tx-icon coffee">☕</span>
+            <div class="tx-main"><strong>Seesaw Coffee</strong><span>咖啡 · 10:18</span></div>
+            <div class="tx-money"><strong>− ¥ 28.00</strong><span>支付宝</span></div>
+          </article>
+          <article class="tx">
+            <span class="tx-icon transit">🚇</span>
+            <div class="tx-main"><strong>上海地铁</strong><span>交通 · 09:06</span></div>
+            <div class="tx-money"><strong>− ¥ 6.00</strong><span>交通卡</span></div>
+          </article>
+          <article class="tx">
+            <span class="tx-icon asset">💻</span>
+            <div class="tx-main"><strong>Apple Store</strong><span>数码 · 昨天</span></div>
+            <div class="tx-money"><strong>− ¥ 1,299.00</strong><span>招行</span></div>
+          </article>
+          <article class="tx">
+            <span class="tx-icon home">🏠</span>
+            <div class="tx-main"><strong>房租</strong><span>居住 · 昨天</span></div>
+            <div class="tx-money"><strong>− ¥ 4,200.00</strong><span>招行</span></div>
+          </article>
+          <article class="tx">
+            <span class="tx-icon shop">🛒</span>
+            <div class="tx-main"><strong>盒马鲜生</strong><span>购物 · 周一</span></div>
+            <div class="tx-money"><strong>− ¥ 186.40</strong><span>支付宝</span></div>
+          </article>
+        </div>
+
+        <button class="add-pill" id="addButton"><span>＋</span> 记一笔</button>
+
+        <nav class="dock" aria-label="主导航">
+          <button class="nav-item active" data-tab="流水">
+            <svg viewBox="0 0 24 24"><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/></svg>
+            <span>流水</span>
+          </button>
+          <button class="nav-item" data-tab="统计">
+            <svg viewBox="0 0 24 24"><path d="M5 19V9m7 10V5m7 14v-7"/></svg>
+            <span>统计</span>
+          </button>
+          <button class="nav-item nav-center" data-tab="对话">
+            <span class="chat-orb">◌</span>
+            <span>对话</span>
+          </button>
+          <button class="nav-item" data-tab="导入">
+            <svg viewBox="0 0 24 24"><path d="M12 3v12m-4-4 4 4 4-4M5 21h14"/></svg>
+            <span>导入</span>
+          </button>
+          <button class="nav-item" data-tab="我的">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 21c0-4 3-7 7-7s7 3 7 7"/></svg>
+            <span>我的</span>
+          </button>
+        </nav>
+
+        <div id="toast" role="status"></div>
+      </div>
+    </section>
+  </main>
+  <script src="./app.js"></script>
+</body>
+</html>
