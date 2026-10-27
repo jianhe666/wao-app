@@ -34,6 +34,8 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.overscroll
+import androidx.compose.foundation.rememberOverscrollEffect
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
@@ -116,6 +118,9 @@ import app.zhizhang.ui.components.PlatformSelectableText
 import app.zhizhang.ui.components.LiquidActionButton
 import app.zhizhang.ui.components.liquidGlass
 import app.zhizhang.ui.components.LocalHazeState
+import com.kyant.backdrop.Backdrop
+import com.kyant.backdrop.backdrops.layerBackdrop
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import app.zhizhang.ui.components.liquidHazeStyle
 import dev.chrisbanes.haze.hazeEffect
 import app.zhizhang.ui.components.ThinProgressBar
@@ -142,6 +147,8 @@ fun HomeChatScreen(
     val style by viewModel.chatStyle.collectAsStateWithLifecycle()
     val customStyles by viewModel.customChatStyles.collectAsStateWithLifecycle()
     val customAccounts by viewModel.customAccounts.collectAsStateWithLifecycle()
+    val messageBackdrop = rememberLayerBackdrop { drawContent() }
+    val overscrollEffect = rememberOverscrollEffect()
     var showStyleSheet by remember { mutableStateOf(false) }
     var showClearDialog by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
@@ -218,8 +225,7 @@ fun HomeChatScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .statusBarsPadding()
-            .padding(bottom = composerBottomPadding),
+            .statusBarsPadding(),
     ) {
         ChatHeader(
             style = style,
@@ -231,18 +237,25 @@ fun HomeChatScreen(
         BudgetLine(summary)
         Spacer(Modifier.height(4.dp))
 
-        if (state.checking) {
-            Box(Modifier.weight(1f).fillMaxWidth())
-        } else {
-            Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth(),
+        ) {
+            if (state.checking) {
+                Box(Modifier.fillMaxSize())
+            } else {
                 LazyColumn(
                     state = listState,
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .layerBackdrop(messageBackdrop)
+                        .overscroll(overscrollEffect),
                     contentPadding = PaddingValues(
                         start = 20.dp,
                         end = 20.dp,
                         top = 12.dp,
-                        bottom = 190.dp,
+                        bottom = composerBottomPadding + 80.dp,
                     ),
                     verticalArrangement = Arrangement.spacedBy(14.dp),
                 ) {
@@ -286,43 +299,52 @@ fun HomeChatScreen(
                     }
                 }
             }
-        }
 
-        state.pendingImage?.let { image ->
-            PendingImageBar(
-                image = image,
-                onRemove = viewModel::clearPendingImage,
-            )
-        }
-        ChatComposer(
-            value = state.input,
-            focusRequester = inputFocusRequester,
-            cursorEndSignal = cursorEndSignal,
-            sending = state.sending,
-            hasImage = state.pendingImage != null,
-            onValueChange = viewModel::updateInput,
-            onPickImage = {
-                picker.launch(
-                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly),
-                )
-            },
-            onCamera = {
-                runCatching {
-                    val uri = createCameraUri(context)
-                    cameraUri = uri
-                    val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
-                        putExtra(MediaStore.EXTRA_OUTPUT, uri)
-                        addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
-                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                    }
-                    camera.launch(intent)
-                }.onFailure {
-                    viewModel.reportError("没有找到可用的相机，试试从相册选择。")
+            // The composer floats over the tail of the conversation, with content-aware glass.
+            Column(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .padding(bottom = composerBottomPadding),
+            ) {
+                state.pendingImage?.let { image ->
+                    PendingImageBar(
+                        image = image,
+                        onRemove = viewModel::clearPendingImage,
+                    )
                 }
-            },
-            onSend = { viewModel.send() },
-        )
-        Spacer(Modifier.height(8.dp))
+                ChatComposer(
+                    value = state.input,
+                    focusRequester = inputFocusRequester,
+                    cursorEndSignal = cursorEndSignal,
+                    sending = state.sending,
+                    hasImage = state.pendingImage != null,
+                    backdrop = messageBackdrop,
+                    onValueChange = viewModel::updateInput,
+                    onPickImage = {
+                        picker.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly),
+                        )
+                    },
+                    onCamera = {
+                        runCatching {
+                            val uri = createCameraUri(context)
+                            cameraUri = uri
+                            val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
+                                putExtra(MediaStore.EXTRA_OUTPUT, uri)
+                                addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+                                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                            }
+                            camera.launch(intent)
+                        }.onFailure {
+                            viewModel.reportError("没有找到可用的相机，试试从相册选择。")
+                        }
+                    },
+                    onSend = { viewModel.send() },
+                )
+                Spacer(Modifier.height(8.dp))
+            }
+        }
     }
 
     state.assetPrompt?.let { prompt ->
@@ -1207,6 +1229,7 @@ private fun ChatComposer(
     cursorEndSignal: Int,
     sending: Boolean,
     hasImage: Boolean,
+    backdrop: Backdrop?,
     onValueChange: (String) -> Unit,
     onPickImage: () -> Unit,
     onCamera: () -> Unit,
@@ -1235,6 +1258,7 @@ private fun ChatComposer(
                 lensHeight = 10.dp,
                 lensAmount = 24.dp,
                 blurRadius = 5.dp,
+                backdropOverride = backdrop,
             )
             .padding(start = 14.dp, end = 6.dp, top = 5.dp, bottom = 5.dp),
         verticalAlignment = Alignment.Bottom,

@@ -474,9 +474,17 @@ private fun TypeToggle(
     onTypeChange: (TxType) -> Unit,
 ) {
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .liquidGlass(
+                shape = RoundedCornerShape(50),
+                tint = MaterialTheme.zh.glassTop.copy(alpha = 0.12f),
+                lensHeight = 7.dp,
+                lensAmount = 16.dp,
+                blurRadius = 3.dp,
+            ),
         shape = RoundedCornerShape(50),
-        color = MaterialTheme.zh.chip,
+        color = Color.Transparent,
     ) {
         Row(modifier = Modifier.padding(4.dp)) {
             TxType.entries.forEach { entry ->
@@ -490,8 +498,19 @@ private fun TypeToggle(
                     modifier = Modifier
                         .weight(1f)
                         .height(34.dp)
-                        .clip(RoundedCornerShape(50))
-                        .background(if (selected) MaterialTheme.colorScheme.surface else Color.Transparent)
+                        .then(
+                            if (selected) {
+                                Modifier.liquidGlass(
+                                    shape = RoundedCornerShape(50),
+                                    tint = MaterialTheme.colorScheme.surface.copy(alpha = 0.24f),
+                                    lensHeight = 5.dp,
+                                    lensAmount = 10.dp,
+                                    blurRadius = 2.dp,
+                                )
+                            } else {
+                                Modifier
+                            },
+                        )
                         .clickable { onTypeChange(entry) },
                     contentAlignment = Alignment.Center,
                 ) {

@@ -34,8 +34,9 @@ fun Modifier.liquidGlass(
     lensHeight: Dp = 10.dp,
     lensAmount: Dp = 22.dp,
     blurRadius: Dp = 5.dp,
+    backdropOverride: com.kyant.backdrop.Backdrop? = null,
 ): Modifier {
-    val backdrop = LocalGlassBackdrop.current
+    val backdrop = backdropOverride ?: LocalGlassBackdrop.current
     val haze = LocalHazeState.current
     val transparency = LocalGlassTransparency.current.coerceIn(0f, 1f)
     val opacity = 1f - transparency
