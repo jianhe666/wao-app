@@ -47,6 +47,7 @@ import android.os.Build
 
 val LocalHazeState = staticCompositionLocalOf<HazeState?> { null }
 val LocalGlassBackdrop = staticCompositionLocalOf<Backdrop?> { null }
+val LocalDockBackdrop = staticCompositionLocalOf<Backdrop?> { null }
 
 internal val isRobolectric: Boolean
     get() = Build.FINGERPRINT.contains("robolectric", ignoreCase = true)

@@ -75,11 +75,17 @@ import app.zhizhang.ui.components.GlassDialog
 import app.zhizhang.ui.components.MarkdownText
 import app.zhizhang.ui.chat.HomeChatScreen
 import app.zhizhang.ui.components.LiquidBackground
+import app.zhizhang.ui.components.LocalDockBackdrop
 import app.zhizhang.ui.components.LocalGlassBackdrop
 import app.zhizhang.ui.components.LocalGlassTransparency
+import app.zhizhang.ui.components.isRobolectric
 import app.zhizhang.ui.components.LocalHazeState
 import app.zhizhang.ui.components.liquidGlass
 import com.kyant.backdrop.backdrops.layerBackdrop
+import com.kyant.backdrop.drawBackdrop
+import com.kyant.backdrop.effects.blur
+import com.kyant.backdrop.effects.lens
+import com.kyant.backdrop.effects.vibrancy
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import app.zhizhang.ui.components.liquidHazeStyle
 import app.zhizhang.ui.components.pressScale
@@ -176,6 +182,9 @@ fun ZhizhangRoot(
     val glassBackdrop = rememberLayerBackdrop {
         drawContent()
     }
+    val contentBackdrop = rememberLayerBackdrop {
+        drawContent()
+    }
     var pendingChatText by remember { mutableStateOf<String?>(null) }
     var pendingChatImage by remember { mutableStateOf<Uri?>(null) }
     var highlightAiRow by remember { mutableStateOf(false) }
@@ -237,12 +246,18 @@ fun ZhizhangRoot(
         CompositionLocalProvider(
             LocalHazeState provides hazeState,
             LocalGlassBackdrop provides glassBackdrop,
+            LocalDockBackdrop provides contentBackdrop,
             LocalGlassTransparency provides glassTransparency,
         ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .then(if (hazeState != null) Modifier.hazeSource(hazeState) else Modifier),
+        ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .layerBackdrop(contentBackdrop),
         ) {
         Box(
             modifier = Modifier
@@ -374,6 +389,7 @@ fun ZhizhangRoot(
             }
         }
         }
+        }
         // 底栏不随输入法隐藏；窗口使用 adjustNothing，键盘会直接盖住它。
         if (showBottomBar) {
             Box(modifier = Modifier.align(Alignment.BottomCenter)) {
@@ -440,6 +456,11 @@ private fun AppBottomBar(
     val shape = RoundedCornerShape(26.dp)
     val haze = LocalHazeState.current
     val hazeStyle = liquidHazeStyle(tintAlpha = 0.30f)
+    val dockBackdrop = LocalDockBackdrop.current
+    val canLens = dockBackdrop != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !isRobolectric
+    val dockTransparency = LocalGlassTransparency.current.coerceIn(0f, 1f)
+    val dockOpacity = 1f - dockTransparency
+    val dockTint = MaterialTheme.zh.glassTop.copy(alpha = (0.06f + 0.26f * dockOpacity))
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -451,20 +472,50 @@ private fun AppBottomBar(
                 .fillMaxWidth()
                 .height(68.dp)
                 .shadow(8.dp, shape, ambientColor = MaterialTheme.zh.glassShadow, spotColor = MaterialTheme.zh.glassShadow)
-                .then(if (haze != null) Modifier.hazeEffect(haze, hazeStyle) else Modifier)
-                .background(
-                    Brush.verticalGradient(
-                        listOf(
-                            MaterialTheme.zh.glassTop.copy(alpha = 0.18f),
-                            MaterialTheme.zh.glassBottom.copy(alpha = 0.07f),
-                        ),
-                    ),
+                .then(
+                    if (canLens && dockBackdrop != null) {
+                        Modifier.drawBackdrop(
+                            backdrop = dockBackdrop,
+                            shape = { shape as androidx.compose.foundation.shape.CornerBasedShape },
+                            effects = {
+                                vibrancy()
+                                blur((2.dp + 16.dp * dockOpacity).toPx())
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                    lens(
+                                        (8.dp + 6.dp * dockOpacity).toPx(),
+                                        (16.dp + 16.dp * dockOpacity).toPx(),
+                                        depthEffect = true,
+                                        chromaticAberration = true,
+                                    )
+                                }
+                            },
+                            onDrawSurface = {
+                                drawRect(dockTint)
+                            },
+                        )
+                    } else if (haze != null) {
+                        Modifier
+                            .hazeEffect(haze, hazeStyle)
+                            .background(
+                                Brush.verticalGradient(
+                                    listOf(
+                                        MaterialTheme.zh.glassTop.copy(alpha = 0.18f),
+                                        MaterialTheme.zh.glassBottom.copy(alpha = 0.07f),
+                                    ),
+                                ),
+                            )
+                    } else {
+                        Modifier.background(
+                            Brush.verticalGradient(
+                                listOf(
+                                    MaterialTheme.zh.glassTop.copy(alpha = 0.36f),
+                                    MaterialTheme.zh.glassBottom.copy(alpha = 0.18f),
+                                ),
+                            ),
+                        )
+                    },
                 )
-                .border(
-                    0.7.dp,
-                    Color.White.copy(alpha = 0.18f),
-                    shape,
-                ),
+                .border(0.7.dp, Color.White.copy(alpha = 0.14f), shape),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             mainTabs.forEach { tab ->
