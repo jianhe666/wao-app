@@ -489,7 +489,7 @@ private fun BottomBarTab(
         label = "tabLabel",
     )
     val orbScale by animateFloatAsState(
-        targetValue = if (selected) 1f else 0.92f,
+        targetValue = if (selected) 1.10f else 0.90f,
         animationSpec = tween(180),
         label = "tabOrb",
     )
@@ -521,29 +521,16 @@ private fun BottomBarTab(
                         scaleX = orbScale
                         scaleY = orbScale
                     }
-                    .clip(CircleShape)
-                    .background(
-                        if (selected) {
-                            Brush.linearGradient(
-                                listOf(
-                                    MaterialTheme.colorScheme.primary,
-                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.78f),
-                                ),
-                            )
+                    .liquidGlass(
+                        shape = RoundedCornerShape(50),
+                        tint = if (selected) {
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.32f)
                         } else {
-                            Brush.linearGradient(
-                                listOf(
-                                    Color.White.copy(alpha = 0.80f),
-                                    Color.White.copy(alpha = 0.48f),
-                                ),
-                            )
+                            MaterialTheme.zh.glassTop.copy(alpha = 0.08f)
                         },
-                    )
-                    .border(
-                        1.dp,
-                        if (selected) Color.White.copy(alpha = 0.48f)
-                        else MaterialTheme.colorScheme.primary.copy(alpha = 0.22f),
-                        CircleShape,
+                        lensHeight = 6.dp,
+                        lensAmount = 14.dp,
+                        blurRadius = 3.dp,
                     ),
                 contentAlignment = Alignment.Center,
             ) {

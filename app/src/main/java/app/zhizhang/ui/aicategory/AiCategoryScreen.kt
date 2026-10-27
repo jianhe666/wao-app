@@ -54,6 +54,7 @@ import app.zhizhang.data.Formats
 import app.zhizhang.data.TransactionEntity
 import app.zhizhang.ui.components.AddCategoryDialog
 import app.zhizhang.ui.components.CategoryPickerSheet
+import app.zhizhang.ui.components.liquidGlass
 import app.zhizhang.ui.theme.zh
 import java.time.Instant
 import java.time.ZoneId
@@ -268,19 +269,16 @@ private fun RangeChip(text: String, selected: Boolean, onClick: () -> Unit) {
         style = MaterialTheme.typography.labelSmall,
         fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
         color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+        maxLines = 1,
+        softWrap = false,
         modifier = Modifier
-            .clip(RoundedCornerShape(50))
-            .background(
-                if (selected) {
-                    MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
-                } else {
-                    MaterialTheme.zh.chip.copy(alpha = 0.6f)
-                },
-            )
-            .border(
-                1.dp,
-                if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.4f) else MaterialTheme.zh.hairline.copy(alpha = 0.3f),
-                RoundedCornerShape(50),
+            .liquidGlass(
+                shape = RoundedCornerShape(50),
+                tint = if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.16f)
+                else MaterialTheme.zh.glassTop.copy(alpha = 0.12f),
+                lensHeight = 5.dp,
+                lensAmount = 12.dp,
+                blurRadius = 2.dp,
             )
             .clickable(onClick = onClick)
             .padding(horizontal = 12.dp, vertical = 7.dp),
@@ -302,8 +300,13 @@ private fun PendingCategoryRow(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.zh.chip.copy(alpha = 0.55f))
+            .liquidGlass(
+                shape = RoundedCornerShape(16.dp),
+                tint = MaterialTheme.zh.glassTop.copy(alpha = 0.10f),
+                lensHeight = 8.dp,
+                lensAmount = 18.dp,
+                blurRadius = 3.dp,
+            )
             .padding(12.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {

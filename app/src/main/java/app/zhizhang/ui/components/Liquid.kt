@@ -134,7 +134,7 @@ fun GlassPanel(
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                             lens(
                                 refractionHeight = 16.dp.toPx(),
-                                refractionAmount = 34.dp.toPx(),
+                                refractionAmount = (34.dp * (0.55f + 0.45f * clarity)).toPx(),
                                 depthEffect = true,
                                 chromaticAberration = true,
                             )
@@ -142,7 +142,7 @@ fun GlassPanel(
                     },
                     onDrawSurface = {
                         // A very light tint; the backdrop and lens carry the material.
-                        drawRect(extra.glassTop.copy(alpha = 0.08f * clarity))
+                        drawRect(extra.glassTop.copy(alpha = 0.20f * clarity))
                     },
                 )
                 .then(clickable),
@@ -183,8 +183,8 @@ fun GlassPanel(
                 .background(
                     Brush.linearGradient(
                         listOf(
-                            extra.glassTop.copy(alpha = (if (haze != null) 0.30f else 0.48f) * clarity),
-                            extra.glassBottom.copy(alpha = (if (haze != null) 0.14f else 0.28f) * clarity),
+                            extra.glassTop.copy(alpha = (if (haze != null) 0.38f else 0.52f) * clarity),
+                            extra.glassBottom.copy(alpha = (if (haze != null) 0.20f else 0.32f) * clarity),
                         ),
                     ),
                 )

@@ -119,7 +119,7 @@ fun MonthSwitcher(
         IconButton(
             onClick = onPrevious,
             modifier = Modifier
-                .size(36.dp)
+                .size(38.dp)
                 .liquidGlass(RoundedCornerShape(50), tint = MaterialTheme.zh.glassTop.copy(alpha = 0.12f), lensHeight = 6.dp, lensAmount = 12.dp, blurRadius = 2.dp),
         ) {
             Icon(
@@ -128,6 +128,7 @@ fun MonthSwitcher(
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
+        Spacer(Modifier.width(10.dp))
         Text(
             text = "${month.year}年${month.monthValue}月",
             modifier = Modifier
@@ -155,11 +156,12 @@ fun MonthSwitcher(
             color = MaterialTheme.colorScheme.onBackground,
             textAlign = TextAlign.Center,
         )
+        Spacer(Modifier.width(10.dp))
         IconButton(
             onClick = onNext,
             enabled = canGoNext,
             modifier = Modifier
-                .size(36.dp)
+                .size(38.dp)
                 .alpha(if (canGoNext) 1f else 0.25f)
                 .liquidGlass(RoundedCornerShape(50), tint = MaterialTheme.zh.glassTop.copy(alpha = 0.12f), lensHeight = 6.dp, lensAmount = 12.dp, blurRadius = 2.dp),
         ) {

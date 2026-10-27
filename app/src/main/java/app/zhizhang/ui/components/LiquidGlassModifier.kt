@@ -50,7 +50,7 @@ fun Modifier.liquidGlass(
                 shape = { cornerShape },
                 effects = {
                     vibrancy()
-                    blur(blurRadius.toPx())
+                    blur((blurRadius * (0.55f + 0.45f * clarity)).toPx())
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                         lens(
                             refractionHeight = lensHeight.toPx(),
@@ -61,7 +61,9 @@ fun Modifier.liquidGlass(
                     }
                 },
                 onDrawSurface = {
-                    if (tint.alpha > 0f) drawRect(tint.copy(alpha = tint.alpha * clarity))
+                    if (tint.alpha > 0f) {
+                        drawRect(tint.copy(alpha = (tint.alpha * 1.35f).coerceAtMost(0.42f) * clarity))
+                    }
                 },
             )
             .border(0.7.dp, Color.White.copy(alpha = 0.18f), shape)

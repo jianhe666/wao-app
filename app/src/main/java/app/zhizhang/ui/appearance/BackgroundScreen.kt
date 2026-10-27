@@ -48,6 +48,7 @@ import app.zhizhang.ui.components.BackgroundArtwork
 import app.zhizhang.ui.components.BackgroundPreset
 import app.zhizhang.ui.components.BackgroundPresets
 import app.zhizhang.ui.components.ZhCard
+import app.zhizhang.ui.components.liquidGlass
 import app.zhizhang.ui.theme.zh
 import kotlin.math.roundToInt
 
@@ -181,8 +182,17 @@ fun BackgroundScreen(onBack: () -> Unit) {
                 if (state.importing) {
                     CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
                 } else {
-                    TextButton(onClick = { picker.launch(arrayOf("image/*")) }) {
-                        Text("选择")
+                    TextButton(
+                        onClick = { picker.launch(arrayOf("image/*")) },
+                        modifier = Modifier.liquidGlass(
+                            shape = RoundedCornerShape(50),
+                            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f),
+                            lensHeight = 6.dp,
+                            lensAmount = 14.dp,
+                            blurRadius = 2.dp,
+                        ),
+                    ) {
+                        Text("选择图片")
                     }
                 }
             }
@@ -190,7 +200,19 @@ fun BackgroundScreen(onBack: () -> Unit) {
                 Spacer(Modifier.height(6.dp))
                 TextButton(
                     onClick = { viewModel.selectPreset("custom") },
-                    modifier = Modifier.align(Alignment.End),
+                    modifier = Modifier
+                        .align(Alignment.End)
+                        .liquidGlass(
+                            shape = RoundedCornerShape(50),
+                            tint = if (state.presetId == "custom") {
+                                MaterialTheme.zh.income.copy(alpha = 0.14f)
+                            } else {
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)
+                            },
+                            lensHeight = 6.dp,
+                            lensAmount = 14.dp,
+                            blurRadius = 2.dp,
+                        ),
                 ) {
                     Text(
                         if (state.presetId == "custom") "当前使用" else "使用这张图片",
@@ -211,17 +233,25 @@ fun BackgroundScreen(onBack: () -> Unit) {
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        Slider(
-            value = opacity,
-            onValueChange = { opacity = it },
-            onValueChangeFinished = { viewModel.setOpacity(opacity) },
-            valueRange = 0f..1f,
-        )
-        Text(
-            text = "只调低背景图案，文字和按钮保持清晰；底色仍然保留。",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .liquidGlass(
+                    shape = RoundedCornerShape(16.dp),
+                    tint = MaterialTheme.zh.glassTop.copy(alpha = 0.10f),
+                    lensHeight = 6.dp,
+                    lensAmount = 14.dp,
+                    blurRadius = 2.dp,
+                )
+                .padding(horizontal = 8.dp),
+        ) {
+            Slider(
+                value = opacity,
+                onValueChange = { opacity = it },
+                onValueChangeFinished = { viewModel.setOpacity(opacity) },
+                valueRange = 0f..1f,
+            )
+        }
 
         Spacer(Modifier.height(22.dp))
         Text(
@@ -229,17 +259,25 @@ fun BackgroundScreen(onBack: () -> Unit) {
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        Slider(
-            value = glassTransparency,
-            onValueChange = { glassTransparency = it },
-            onValueChangeFinished = { viewModel.setGlassTransparency(glassTransparency) },
-            valueRange = 0f..0.75f,
-        )
-        Text(
-            text = "调高后玻璃更通透，调低后文字和图标更清楚。",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .liquidGlass(
+                    shape = RoundedCornerShape(16.dp),
+                    tint = MaterialTheme.zh.glassTop.copy(alpha = 0.10f),
+                    lensHeight = 6.dp,
+                    lensAmount = 14.dp,
+                    blurRadius = 2.dp,
+                )
+                .padding(horizontal = 8.dp),
+        ) {
+            Slider(
+                value = glassTransparency,
+                onValueChange = { glassTransparency = it },
+                onValueChangeFinished = { viewModel.setGlassTransparency(glassTransparency) },
+                valueRange = 0f..0.75f,
+            )
+        }
         Spacer(Modifier.height(34.dp))
     }
 }
@@ -253,13 +291,13 @@ private fun PresetCard(
 ) {
     Column(
         modifier = modifier
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.zh.chip.copy(alpha = 0.48f))
-            .border(
-                1.dp,
-                if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.55f)
-                else MaterialTheme.zh.glassBorder.copy(alpha = 0.7f),
-                RoundedCornerShape(16.dp),
+            .liquidGlass(
+                shape = RoundedCornerShape(16.dp),
+                tint = if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.16f)
+                else MaterialTheme.zh.glassTop.copy(alpha = 0.10f),
+                lensHeight = 8.dp,
+                lensAmount = 18.dp,
+                blurRadius = 3.dp,
             )
             .clickable(onClick = onClick)
             .padding(7.dp),

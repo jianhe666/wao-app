@@ -585,6 +585,8 @@ private fun FilterChoice(
         style = MaterialTheme.typography.labelSmall,
         fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
         color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+        maxLines = 1,
+        softWrap = false,
         modifier = modifier
             .liquidGlass(
                 shape = RoundedCornerShape(50),
@@ -595,7 +597,7 @@ private fun FilterChoice(
                 blurRadius = 2.dp,
             )
             .clickable(onClick = onClick)
-            .padding(horizontal = 12.dp, vertical = 7.dp),
+            .padding(horizontal = 13.dp, vertical = 7.dp),
     )
 }
 
@@ -624,6 +626,8 @@ private fun FilterCategoryRow(
             text = label,
             style = MaterialTheme.typography.bodySmall,
             color = if (selected) color else MaterialTheme.colorScheme.onSurface,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f),
         )
         if (selected) {
