@@ -114,6 +114,9 @@ import app.zhizhang.ui.components.AppMark
 import app.zhizhang.ui.components.GlassCircleButton
 import app.zhizhang.ui.components.PlatformSelectableText
 import app.zhizhang.ui.components.LiquidActionButton
+import app.zhizhang.ui.components.LocalHazeState
+import app.zhizhang.ui.components.liquidHazeStyle
+import dev.chrisbanes.haze.hazeEffect
 import app.zhizhang.ui.components.ThinProgressBar
 import app.zhizhang.ui.theme.zh
 import java.time.Instant
@@ -622,6 +625,9 @@ private fun ChatMessageItem(
     onReimbursementConfirm: (Int) -> Unit,
     onReimbursementCancel: (Int) -> Unit,
 ) {
+    val haze = LocalHazeState.current
+    val hazeStyle = liquidHazeStyle(tintAlpha = 0.30f)
+
     if (message.role == ChatRole.USER) {
         Column(
             modifier = Modifier.fillMaxWidth(),
@@ -648,11 +654,12 @@ private fun ChatMessageItem(
                 modifier = Modifier
                     .widthIn(max = 300.dp)
                     .clip(RoundedCornerShape(18.dp, 18.dp, 5.dp, 18.dp))
+                    .then(if (haze != null) Modifier.hazeEffect(haze, hazeStyle) else Modifier)
                     .background(
                         Brush.linearGradient(
                             listOf(
-                                Color.White.copy(alpha = 0.64f),
-                                MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                                Color.White.copy(alpha = 0.30f),
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.10f),
                             ),
                         ),
                     )
@@ -681,7 +688,8 @@ private fun ChatMessageItem(
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(5.dp, 18.dp, 18.dp, 18.dp))
-                        .background(MaterialTheme.zh.glassTop.copy(alpha = 0.72f))
+                        .then(if (haze != null) Modifier.hazeEffect(haze, hazeStyle) else Modifier)
+                        .background(MaterialTheme.zh.glassTop.copy(alpha = 0.30f))
                         .border(
                             1.dp,
                             MaterialTheme.zh.hairline.copy(alpha = 0.22f),
