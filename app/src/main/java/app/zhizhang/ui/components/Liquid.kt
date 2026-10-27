@@ -36,8 +36,20 @@ import dev.chrisbanes.haze.HazeStyle
 import dev.chrisbanes.haze.HazeTint
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
+import com.kyant.backdrop.Backdrop
+import com.kyant.backdrop.drawBackdrop
+import com.kyant.backdrop.effects.blur
+import com.kyant.backdrop.effects.lens
+import com.kyant.backdrop.effects.vibrancy
+import androidx.compose.foundation.shape.CornerBasedShape
+import androidx.compose.runtime.staticCompositionLocalOf
+import android.os.Build
 
 val LocalHazeState = staticCompositionLocalOf<HazeState?> { null }
+val LocalGlassBackdrop = staticCompositionLocalOf<Backdrop?> { null }
+
+internal val isRobolectric: Boolean
+    get() = Build.FINGERPRINT.contains("robolectric", ignoreCase = true)
 
 /** 玻璃模糊的统一参数。真机 Android 12+ 会使用背景模糊，较旧系统自动退回磨砂半透明。 */
 @Composable
@@ -91,82 +103,122 @@ fun GlassPanel(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val extra = MaterialTheme.zh
-    val haze = LocalHazeState.current
-    val hazeStyle = liquidHazeStyle(tintAlpha = 0.30f)
-    Box(
-        modifier = modifier
-            .shadow(
-                elevation = 12.dp,
-                shape = shape,
-                ambientColor = extra.glassShadow,
-                spotColor = extra.glassShadow,
-            )
-            .clip(shape)
-            // Real backdrop blur below the content; no flat white sheet.
-            .then(if (haze != null) Modifier.hazeEffect(haze, hazeStyle) else Modifier)
-            .background(
-                Brush.linearGradient(
-                    listOf(
-                        extra.glassTop.copy(alpha = if (haze != null) 0.30f else 0.48f),
-                        extra.glassBottom.copy(alpha = if (haze != null) 0.14f else 0.28f),
+    val backdrop = LocalGlassBackdrop.current
+    val canUseLens = backdrop != null &&
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+        !isRobolectric
+    val cornerShape = shape as? CornerBasedShape ?: RoundedCornerShape(24.dp)
+    val clickable = if (onClick != null) {
+        Modifier.clickable(onClick = onClick)
+    } else {
+        Modifier
+    }
+
+    if (canUseLens && backdrop != null) {
+        Box(
+            modifier = modifier
+                .shadow(
+                    elevation = 12.dp,
+                    shape = shape,
+                    ambientColor = extra.glassShadow,
+                    spotColor = extra.glassShadow,
+                )
+                .clip(shape)
+                .drawBackdrop(
+                    backdrop = backdrop,
+                    shape = { cornerShape },
+                    effects = {
+                        vibrancy()
+                        blur(8.dp.toPx())
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            lens(
+                                refractionHeight = 16.dp.toPx(),
+                                refractionAmount = 34.dp.toPx(),
+                                depthEffect = true,
+                                chromaticAberration = true,
+                            )
+                        }
+                    },
+                    onDrawSurface = {
+                        // A very light tint; the backdrop and lens carry the material.
+                        drawRect(extra.glassTop.copy(alpha = 0.08f))
+                    },
+                )
+                .then(clickable),
+        ) {
+            Canvas(Modifier.matchParentSize()) {
+                // Soft directional sheen only; no opaque white edge.
+                drawRoundRect(
+                    brush = Brush.radialGradient(
+                        colors = listOf(
+                            Color.White.copy(alpha = 0.10f),
+                            Color.Transparent,
+                        ),
+                        center = Offset(size.width * 0.18f, 0f),
+                        radius = size.width * 0.75f,
                     ),
-                ),
-            )
-            .border(
-                width = 0.8.dp,
-                brush = Brush.linearGradient(
-                    colors = listOf(
-                        Color.White.copy(alpha = 0.38f),
-                        MaterialTheme.colorScheme.secondary.copy(alpha = 0.10f),
-                        Color.White.copy(alpha = 0.08f),
-                        extra.gold.copy(alpha = 0.18f),
-                    ),
-                ),
-                shape = shape,
-            )
-            .then(
-                if (onClick != null) {
-                    Modifier.clickable(onClick = onClick)
-                } else {
-                    Modifier
-                },
-            ),
-    ) {
-        // Broad, soft top-left sheen.
-        Canvas(Modifier.matchParentSize()) {
-            drawRoundRect(
-                brush = Brush.radialGradient(
-                    colors = listOf(
-                        Color.White.copy(alpha = 0.10f),
-                        Color.Transparent,
-                    ),
-                    center = Offset(size.width * 0.18f, 0f),
-                    radius = size.width * 0.72f,
-                ),
-                cornerRadius = CornerRadius(24.dp.toPx(), 24.dp.toPx()),
-                size = Size(size.width, size.height),
-            )
-            // A thin, broken rim catches light; it is deliberately not a full white outline.
-            drawRoundRect(
-                brush = Brush.linearGradient(
-                    colors = listOf(
-                        Color.White.copy(alpha = 0.32f),
-                        Color.Transparent,
-                        Color.Transparent,
-                        Color(0x334E6EA8),
-                    ),
-                    start = Offset(0f, 0f),
-                    end = Offset(size.width, size.height),
-                ),
-                cornerRadius = CornerRadius(24.dp.toPx(), 24.dp.toPx()),
-                size = Size(size.width, size.height),
-                style = Stroke(width = 0.8.dp.toPx()),
+                    cornerRadius = CornerRadius(24.dp.toPx(), 24.dp.toPx()),
+                    size = Size(size.width, size.height),
+                )
+            }
+            Column(
+                modifier = Modifier.padding(contentPadding),
+                content = content,
             )
         }
-        Column(
-            modifier = Modifier.padding(contentPadding),
-            content = content,
-        )
+    } else {
+        val haze = LocalHazeState.current
+        val hazeStyle = liquidHazeStyle(tintAlpha = 0.30f)
+        Box(
+            modifier = modifier
+                .shadow(
+                    elevation = 12.dp,
+                    shape = shape,
+                    ambientColor = extra.glassShadow,
+                    spotColor = extra.glassShadow,
+                )
+                .clip(shape)
+                .then(if (haze != null) Modifier.hazeEffect(haze, hazeStyle) else Modifier)
+                .background(
+                    Brush.linearGradient(
+                        listOf(
+                            extra.glassTop.copy(alpha = if (haze != null) 0.30f else 0.48f),
+                            extra.glassBottom.copy(alpha = if (haze != null) 0.14f else 0.28f),
+                        ),
+                    ),
+                )
+                .border(
+                    width = 0.8.dp,
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            Color.White.copy(alpha = 0.30f),
+                            MaterialTheme.colorScheme.secondary.copy(alpha = 0.08f),
+                            Color.White.copy(alpha = 0.06f),
+                        ),
+                    ),
+                    shape = shape,
+                )
+                .then(clickable),
+        ) {
+            Canvas(Modifier.matchParentSize()) {
+                drawRoundRect(
+                    brush = Brush.radialGradient(
+                        colors = listOf(
+                            Color.White.copy(alpha = 0.10f),
+                            Color.Transparent,
+                        ),
+                        center = Offset(size.width * 0.18f, 0f),
+                        radius = size.width * 0.72f,
+                    ),
+                    cornerRadius = CornerRadius(24.dp.toPx(), 24.dp.toPx()),
+                    size = Size(size.width, size.height),
+                )
+            }
+            Column(
+                modifier = Modifier.padding(contentPadding),
+                content = content,
+            )
+        }
     }
 }
 

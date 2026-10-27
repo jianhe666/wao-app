@@ -75,7 +75,10 @@ import app.zhizhang.ui.components.GlassDialog
 import app.zhizhang.ui.components.MarkdownText
 import app.zhizhang.ui.chat.HomeChatScreen
 import app.zhizhang.ui.components.LiquidBackground
+import app.zhizhang.ui.components.LocalGlassBackdrop
 import app.zhizhang.ui.components.LocalHazeState
+import com.kyant.backdrop.backdrops.layerBackdrop
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import app.zhizhang.ui.components.liquidHazeStyle
 import app.zhizhang.ui.components.pressScale
 import app.zhizhang.ui.editor.EditorScreen
@@ -167,6 +170,9 @@ fun ZhizhangRoot(
         // Robolectric 的软件渲染不支持 Haze 使用的 RenderNode；截图测试使用玻璃降级样式。
         if (Build.FINGERPRINT.contains("robolectric", ignoreCase = true)) null else HazeState()
     }
+    val glassBackdrop = rememberLayerBackdrop {
+        drawContent()
+    }
     var pendingChatText by remember { mutableStateOf<String?>(null) }
     var pendingChatImage by remember { mutableStateOf<Uri?>(null) }
     var highlightAiRow by remember { mutableStateOf(false) }
@@ -225,17 +231,26 @@ fun ZhizhangRoot(
 
     ZhizhangTheme(darkTheme = darkContent) {
     Box(modifier = Modifier.fillMaxSize()) {
-        CompositionLocalProvider(LocalHazeState provides hazeState) {
+        CompositionLocalProvider(
+            LocalHazeState provides hazeState,
+            LocalGlassBackdrop provides glassBackdrop,
+        ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .then(if (hazeState != null) Modifier.hazeSource(hazeState) else Modifier),
         ) {
-        LiquidBackground(
-            presetId = backgroundId,
-            opacity = backgroundOpacity,
-            customImagePath = customBackgroundPath.takeIf { it.isNotBlank() },
-        )
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .layerBackdrop(glassBackdrop),
+        ) {
+            LiquidBackground(
+                presetId = backgroundId,
+                opacity = backgroundOpacity,
+                customImagePath = customBackgroundPath.takeIf { it.isNotBlank() },
+            )
+        }
         Scaffold(
             containerColor = Color.Transparent,
             contentWindowInsets = WindowInsets(0, 0, 0, 0),
