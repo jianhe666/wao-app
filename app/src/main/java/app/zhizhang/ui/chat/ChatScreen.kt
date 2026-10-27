@@ -934,12 +934,12 @@ private fun ChatBillCard(
         modifier = Modifier
             .fillMaxWidth()
             .animateContentSize()
-            .clip(RoundedCornerShape(18.dp))
-            .background(MaterialTheme.zh.chip.copy(alpha = 0.55f))
-            .border(
-                1.dp,
-                MaterialTheme.zh.hairline.copy(alpha = 0.26f),
-                RoundedCornerShape(18.dp),
+            .liquidGlass(
+                shape = RoundedCornerShape(18.dp),
+                tint = MaterialTheme.zh.glassTop.copy(alpha = 0.12f),
+                lensHeight = 9.dp,
+                lensAmount = 20.dp,
+                blurRadius = 4.dp,
             )
             .padding(12.dp),
     ) {
