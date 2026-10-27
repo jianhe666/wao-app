@@ -6,6 +6,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.clickable
@@ -156,6 +157,8 @@ fun ZhizhangRoot(
     val customBackgroundPath by settings.customBackgroundPath.collectAsStateWithLifecycle(initialValue = "")
     val updateUseMirror by settings.updateUseMirror.collectAsStateWithLifecycle(initialValue = false)
     val glassTransparency by settings.glassTransparency.collectAsStateWithLifecycle(initialValue = 0.30f)
+    val themeMode by settings.themeMode.collectAsStateWithLifecycle(initialValue = "system")
+    val systemDark = isSystemInDarkTheme()
     var customBackgroundNeedsDarkText by remember { mutableStateOf(false) }
     LaunchedEffect(backgroundId, customBackgroundPath, backgroundOpacity) {
         customBackgroundNeedsDarkText = if (backgroundId == "custom") {
@@ -164,10 +167,15 @@ fun ZhizhangRoot(
             false
         }
     }
-    val darkContent = when (backgroundId) {
+    val backgroundNeedsDark = when (backgroundId) {
         "night" -> BackgroundContrast.presetNeedsDarkText(backgroundId, backgroundOpacity)
         "custom" -> customBackgroundNeedsDarkText
         else -> false
+    }
+    val darkContent = when (themeMode) {
+        "light" -> false
+        "dark" -> true
+        else -> systemDark || backgroundNeedsDark
     }
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()

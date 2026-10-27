@@ -48,9 +48,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import android.app.DatePickerDialog
 import java.time.LocalDate
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -59,6 +57,7 @@ import app.zhizhang.data.AssetCategory
 import app.zhizhang.data.AssetEntity
 import app.zhizhang.data.Formats
 import app.zhizhang.ui.components.ZhCard
+import app.zhizhang.ui.components.ZhDatePickerDialog
 import app.zhizhang.ui.components.liquidGlass
 import app.zhizhang.ui.theme.zh
 import java.time.Instant
@@ -339,7 +338,6 @@ private fun AssetEditorDialog(
     onDismiss: () -> Unit,
     onSave: (String, AssetCategory, String, String, Long?) -> Unit,
 ) {
-    val context = LocalContext.current
     var name by remember(initial?.id) { mutableStateOf(initial?.name.orEmpty()) }
     var value by remember(initial?.id) {
         mutableStateOf(initial?.let { Formats.centsToInput(it.valueCents) }.orEmpty())
@@ -355,6 +353,7 @@ private fun AssetEditorDialog(
             } ?: LocalDate.now(),
         )
     }
+    var showDatePicker by remember { mutableStateOf(false) }
 
     GlassAlertDialog(
         onDismissRequest = onDismiss,
@@ -384,18 +383,16 @@ private fun AssetEditorDialog(
                 if (category.tracksPurchaseDate) {
                     Spacer(Modifier.height(8.dp))
                     OutlinedButton(
-                        onClick = {
-                            DatePickerDialog(
-                                context,
-                                { _, year, month, day ->
-                                    acquiredDate = LocalDate.of(year, month + 1, day)
-                                },
-                                acquiredDate.year,
-                                acquiredDate.monthValue - 1,
-                                acquiredDate.dayOfMonth,
-                            ).show()
-                        },
-                        modifier = Modifier.fillMaxWidth(),
+                        onClick = { showDatePicker = true },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .liquidGlass(
+                                shape = RoundedCornerShape(14.dp),
+                                tint = MaterialTheme.zh.glassTop.copy(alpha = 0.10f),
+                                lensHeight = 7.dp,
+                                lensAmount = 16.dp,
+                                blurRadius = 3.dp,
+                            ),
                     ) {
                         Text("购入日期：${acquiredDate.year}/${acquiredDate.monthValue}/${acquiredDate.dayOfMonth}")
                     }
@@ -468,4 +465,15 @@ private fun AssetEditorDialog(
             TextButton(onClick = onDismiss) { Text("取消") }
         },
     )
+
+    if (showDatePicker) {
+        ZhDatePickerDialog(
+            initialDate = acquiredDate,
+            onDismiss = { showDatePicker = false },
+            onConfirm = { date ->
+                acquiredDate = date
+                showDatePicker = false
+            },
+        )
+    }
 }

@@ -103,6 +103,10 @@ class SettingsRepository(private val context: Context) {
         prefs[GLASS_TRANSPARENCY] ?: 0.30f
     }
 
+    val themeMode: Flow<String> = context.settingsDataStore.data.map { prefs ->
+        prefs[THEME_MODE] ?: "system"
+    }
+
 
     suspend fun snapshotJson(): JSONObject {
         val accounts = customAccounts.first()
@@ -143,6 +147,7 @@ class SettingsRepository(private val context: Context) {
             put("customBackgroundPath", customBackgroundPath.first())
             put("updateUseMirror", updateUseMirror.first())
             put("glassTransparency", glassTransparency.first())
+            put("themeMode", themeMode.first())
         }
     }
 
@@ -256,6 +261,15 @@ class SettingsRepository(private val context: Context) {
         context.settingsDataStore.edit { prefs ->
             prefs[BACKGROUND_ID] = id
             if (customPath != null) prefs[CUSTOM_BACKGROUND_PATH] = customPath
+        }
+    }
+
+    suspend fun setThemeMode(value: String) {
+        context.settingsDataStore.edit {
+            it[THEME_MODE] = when (value) {
+                "light", "dark" -> value
+                else -> "system"
+            }
         }
     }
 
@@ -383,6 +397,7 @@ class SettingsRepository(private val context: Context) {
         private val CUSTOM_BACKGROUND_PATH = stringPreferencesKey("custom_background_path")
         private val UPDATE_USE_MIRROR = booleanPreferencesKey("update_use_mirror")
         private val GLASS_TRANSPARENCY = floatPreferencesKey("glass_transparency")
+        private val THEME_MODE = stringPreferencesKey("theme_mode")
 
         const val DEFAULT_AI_BASE_URL = "https://api.deepseek.com"
         const val DEFAULT_AI_MODEL = "deepseek-flash"

@@ -109,6 +109,7 @@ import app.zhizhang.data.Formats
 import app.zhizhang.ui.components.BudgetDialog
 import app.zhizhang.ui.components.ConfirmDialog
 import app.zhizhang.ui.components.GlassDialog
+import app.zhizhang.ui.components.liquidGlass
 import app.zhizhang.ui.components.MarkdownText
 import app.zhizhang.ui.components.AppMark
 import app.zhizhang.ui.components.BaiduMark
@@ -137,6 +138,7 @@ fun SettingsScreen(
     val baiduRestore by viewModel.baiduRestore.collectAsStateWithLifecycle()
     val updateState by viewModel.updateState.collectAsStateWithLifecycle()
     val updateUseMirror by viewModel.updateUseMirror.collectAsStateWithLifecycle()
+    val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
     val reminder by viewModel.reminderState.collectAsStateWithLifecycle()
     val autoCaptureAllApps by viewModel.autoCaptureAllApps.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -209,6 +211,7 @@ fun SettingsScreen(
     var showAccessibilityDialog by remember { mutableStateOf(false) }
     var showBaiduLogoutDialog by remember { mutableStateOf(false) }
     var showExportDialog by remember { mutableStateOf(false) }
+    var showThemeModeDialog by remember { mutableStateOf(false) }
     var notificationAccessGranted by remember {
         mutableStateOf(isNotificationAccessGranted(context))
     }
@@ -344,7 +347,18 @@ fun SettingsScreen(
                 subtitle = "预设、自己的照片和透明度",
                 onClick = onOpenBackground,
             )
-
+            SettingsDivider()
+            SettingsRow(
+                icon = "lock",
+                iconTint = MaterialTheme.colorScheme.onSurfaceVariant,
+                title = "深色模式",
+                subtitle = when (themeMode) {
+                    "light" -> "浅色"
+                    "dark" -> "深色"
+                    else -> "跟随系统"
+                },
+                onClick = { showThemeModeDialog = true },
+            )
         }
 
         Spacer(Modifier.height(20.dp))
@@ -1083,6 +1097,51 @@ fun SettingsScreen(
                         viewModel.exportAssetCsv()
                     },
                 ) { Text("资产 CSV") }
+            },
+        )
+    }
+
+    if (showThemeModeDialog) {
+        GlassAlertDialog(
+            onDismissRequest = { showThemeModeDialog = false },
+            title = { Text("深色模式") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    listOf("system" to "跟随系统", "light" to "浅色", "dark" to "深色")
+                        .forEach { (value, label) ->
+                            TextButton(
+                                onClick = {
+                                    viewModel.setThemeMode(value)
+                                    showThemeModeDialog = false
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .liquidGlass(
+                                        shape = RoundedCornerShape(14.dp),
+                                        tint = if (themeMode == value) {
+                                            MaterialTheme.colorScheme.primary.copy(alpha = 0.16f)
+                                        } else {
+                                            MaterialTheme.zh.glassTop.copy(alpha = 0.10f)
+                                        },
+                                        lensHeight = 7.dp,
+                                        lensAmount = 16.dp,
+                                        blurRadius = 3.dp,
+                                    ),
+                            ) {
+                                Text(
+                                    label,
+                                    color = if (themeMode == value) {
+                                        MaterialTheme.colorScheme.primary
+                                    } else {
+                                        MaterialTheme.colorScheme.onSurface
+                                    },
+                                )
+                            }
+                        }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showThemeModeDialog = false }) { Text("完成") }
             },
         )
     }

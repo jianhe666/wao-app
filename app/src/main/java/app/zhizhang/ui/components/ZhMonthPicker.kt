@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import app.zhizhang.ui.theme.zh
+import app.zhizhang.ui.components.liquidGlass
 import java.time.YearMonth
 
 /** 快速跳年月的月历；只允许选择当前月及以前。 */
@@ -63,10 +64,18 @@ fun ZhMonthPickerDialog(
             contentAlignment = Alignment.Center,
         ) {
             Surface(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .liquidGlass(
+                        shape = RoundedCornerShape(28.dp),
+                        tint = MaterialTheme.zh.glassTop.copy(alpha = 0.20f),
+                        lensHeight = 14.dp,
+                        lensAmount = 28.dp,
+                        blurRadius = 6.dp,
+                    ),
                 shape = RoundedCornerShape(28.dp),
-                color = MaterialTheme.colorScheme.surface,
-                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.75f)),
+                color = Color.Transparent,
+                border = null,
                 shadowElevation = 20.dp,
             ) {
                 Column(modifier = Modifier.padding(horizontal = 18.dp, vertical = 18.dp)) {

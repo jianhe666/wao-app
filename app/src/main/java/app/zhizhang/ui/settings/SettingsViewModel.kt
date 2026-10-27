@@ -107,6 +107,12 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     private val events = Channel<SettingsEvent>(Channel.BUFFERED)
     val eventFlow = events.receiveAsFlow()
 
+    val themeMode = settings.themeMode.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = "system",
+    )
+
     val updateUseMirror = settings.updateUseMirror.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
@@ -465,6 +471,10 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     fun dismissUpdate() {
         _updateState.value = UpdateUiState()
+    }
+
+    fun setThemeMode(mode: String) {
+        viewModelScope.launch { settings.setThemeMode(mode) }
     }
 
     fun setUpdateUseMirror(enabled: Boolean) {
