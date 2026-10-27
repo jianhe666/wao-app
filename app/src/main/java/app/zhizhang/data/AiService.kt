@@ -724,6 +724,7 @@ class AiService(private val settings: SettingsRepository) {
         appendLine("11. 如果用户没有设置预算，不要编造预算；只在合适时机问一次是否要设置。")
         appendLine("12. 用户可能上传账单截图。先读图提取真实交易；看不清、被截断或信息冲突时用一句话追问，不要猜测金额。不要描述图片本身。")
         appendLine("13. 如果用户购买的是可长期持有、可管理价值的资产（数码产品、家电、家具、车辆、房产、贵金属、收藏品、投资资产等），在 assets 数组里生成候选：{\"name\":\"相机\",\"amount\":4999,\"category\":\"digital\",\"note\":\"\"}。不要因为生成了 assets 就省略对应的 transaction。餐饮、日用消耗、房租、交通、服务、旅行等不要生成 assets。金额不确定时不要生成 assets。App 会让用户确认后再加入资产列表。")
+        appendLine("14. 只要用户描述了新的真实收支，就必须在本轮 transactions 中生成记录；即使和聊天历史里的某笔相似，也不能说已经记下。没有生成 transaction 时，reply 不得声称已记下、已记录或已入账。")
         if (styleInstruction.isNotBlank()) {
             appendLine()
             appendLine("表达风格（高优先级，必须明显体现，不能只换一两个语气词）：")

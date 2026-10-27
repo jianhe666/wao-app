@@ -22,6 +22,7 @@ import app.zhizhang.data.TxType
 import app.zhizhang.data.TransactionRepository
 import app.zhizhang.data.TransactionEntity
 import app.zhizhang.domain.ChatGreetings
+import app.zhizhang.domain.ChatReplyGuard
 import app.zhizhang.domain.ChatStyle
 import app.zhizhang.domain.CustomChatStyle
 import app.zhizhang.domain.ChatStyles
@@ -333,11 +334,30 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                     intents = result.reimbursements,
                     sentAt = sentAt,
                 )
+                // AI 偶尔会说“记下了”却没有返回 transactions；不能把这句话当成记账成功。
+                var bills = result.bills
+                var reply = result.reply
+                if (bills.isEmpty() && ChatReplyGuard.claimsRecorded(reply)) {
+                    val localBills = runCatching {
+                        repository.parseBills(
+                            input = prompt,
+                            rules = repository.rulesSnapshot(),
+                            now = sentAt,
+                            defaultAccountId = settings.lastAccountId.first(),
+                        )
+                    }.getOrDefault(emptyList())
+                    if (localBills.isNotEmpty()) {
+                        bills = localBills
+                        reply = ChatReplyGuard.honestReply(true)
+                    } else {
+                        reply = ChatReplyGuard.honestReply(false)
+                    }
+                }
                 val assistant = ChatMessage(
                     id = nextId++,
                     role = ChatRole.ASSISTANT,
                     content = result.reply,
-                    bills = result.bills.map { ChatBill(it, it.categoryId) },
+                    bills = bills.map { ChatBill(it, it.categoryId) },
                     reimbursements = reimbursements,
                 )
                 _state.update {
