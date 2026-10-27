@@ -121,13 +121,18 @@ fun CategoryCell(
     Surface(
         modifier = modifier
             .height(68.dp)
+            .liquidGlass(
+                shape = RoundedCornerShape(16.dp),
+                tint = if (selected) accent.copy(alpha = 0.18f)
+                else MaterialTheme.zh.glassTop.copy(alpha = 0.10f),
+                lensHeight = 8.dp,
+                lensAmount = 18.dp,
+                blurRadius = 3.dp,
+            )
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
-        color = if (selected) accent.copy(alpha = 0.13f) else MaterialTheme.colorScheme.background,
-        border = BorderStroke(
-            width = if (selected) 1.5.dp else 1.dp,
-            color = if (selected) accent.copy(alpha = 0.7f) else MaterialTheme.zh.hairline,
-        ),
+        color = Color.Transparent,
+        border = null,
     ) {
         Column(
             modifier = Modifier.fillMaxWidth(),

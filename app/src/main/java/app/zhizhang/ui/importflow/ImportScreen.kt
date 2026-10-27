@@ -3,6 +3,7 @@ package app.zhizhang.ui.importflow
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -42,6 +43,7 @@ import app.zhizhang.data.Categories
 import app.zhizhang.data.Formats
 import app.zhizhang.domain.ParsedBill
 import app.zhizhang.ui.components.GlassPanel
+import app.zhizhang.ui.components.liquidGlass
 import app.zhizhang.ui.components.MerchantBadge
 import app.zhizhang.ui.theme.zh
 import java.time.Instant
@@ -121,14 +123,28 @@ fun ImportScreen(
                         shape = RoundedCornerShape(14.dp),
                     )
                     Spacer(Modifier.height(8.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        TextButton(
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        ImportSourceCard(
+                            title = "粘贴",
+                            subtitle = "从剪贴板",
+                            modifier = Modifier.weight(1f),
                             onClick = {
                                 viewModel.onTextChange(clipboard.getText()?.text.orEmpty())
                             },
-                        ) { Text("粘贴") }
-                        TextButton(onClick = viewModel::fillSample) { Text("示例") }
-                        TextButton(
+                        )
+                        ImportSourceCard(
+                            title = "示例",
+                            subtitle = "看看格式",
+                            modifier = Modifier.weight(1f),
+                            onClick = viewModel::fillSample,
+                        )
+                        ImportSourceCard(
+                            title = "账单 CSV",
+                            subtitle = "选择文件",
+                            modifier = Modifier.weight(1f),
                             onClick = {
                                 csvPicker.launch(
                                     arrayOf(
@@ -141,13 +157,26 @@ fun ImportScreen(
                                     ),
                                 )
                             },
-                        ) { Text("账单 CSV") }
+                        )
+                    }
+                    Spacer(Modifier.height(8.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         Spacer(Modifier.weight(1f))
                         Button(
                             onClick = viewModel::parseText,
                             enabled = state.canParse,
+                            modifier = Modifier.liquidGlass(
+                                shape = RoundedCornerShape(12.dp),
+                                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.24f),
+                                lensHeight = 7.dp,
+                                lensAmount = 15.dp,
+                                blurRadius = 3.dp,
+                            ),
                             shape = RoundedCornerShape(12.dp),
                             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                            colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                containerColor = Color.Transparent,
+                            ),
                         ) {
                             if (state.parsing) {
                                 CircularProgressIndicator(
@@ -295,6 +324,42 @@ private fun BillPreview(bill: ParsedBill) {
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.Medium,
             color = MaterialTheme.colorScheme.onSurface,
+        )
+    }
+}
+
+
+@Composable
+private fun ImportSourceCard(
+    title: String,
+    subtitle: String,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+) {
+    Column(
+        modifier = modifier
+            .liquidGlass(
+                shape = RoundedCornerShape(14.dp),
+                tint = MaterialTheme.zh.glassTop.copy(alpha = 0.10f),
+                lensHeight = 7.dp,
+                lensAmount = 16.dp,
+                blurRadius = 3.dp,
+            )
+            .clickable(onClick = onClick)
+            .padding(horizontal = 8.dp, vertical = 9.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+            maxLines = 1,
+        )
+        Text(
+            text = subtitle,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
         )
     }
 }

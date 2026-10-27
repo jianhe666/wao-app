@@ -1,6 +1,7 @@
 package app.zhizhang.ui.components
 
 import androidx.compose.foundation.background
+import app.zhizhang.ui.components.liquidGlass
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -24,12 +25,12 @@ fun CategoryAddCell(
     Box(
         modifier = modifier
             .height(68.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.055f))
-            .border(
-                1.dp,
-                MaterialTheme.colorScheme.primary.copy(alpha = 0.25f),
-                RoundedCornerShape(16.dp),
+            .liquidGlass(
+                shape = RoundedCornerShape(16.dp),
+                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f),
+                lensHeight = 8.dp,
+                lensAmount = 18.dp,
+                blurRadius = 3.dp,
             )
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,

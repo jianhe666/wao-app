@@ -76,7 +76,9 @@ import app.zhizhang.ui.components.MarkdownText
 import app.zhizhang.ui.chat.HomeChatScreen
 import app.zhizhang.ui.components.LiquidBackground
 import app.zhizhang.ui.components.LocalGlassBackdrop
+import app.zhizhang.ui.components.LocalGlassTransparency
 import app.zhizhang.ui.components.LocalHazeState
+import app.zhizhang.ui.components.liquidGlass
 import com.kyant.backdrop.backdrops.layerBackdrop
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import app.zhizhang.ui.components.liquidHazeStyle
@@ -147,6 +149,7 @@ fun ZhizhangRoot(
     val backgroundOpacity by settings.backgroundOpacity.collectAsStateWithLifecycle(initialValue = 1f)
     val customBackgroundPath by settings.customBackgroundPath.collectAsStateWithLifecycle(initialValue = "")
     val updateUseMirror by settings.updateUseMirror.collectAsStateWithLifecycle(initialValue = false)
+    val glassTransparency by settings.glassTransparency.collectAsStateWithLifecycle(initialValue = 0.30f)
     var customBackgroundNeedsDarkText by remember { mutableStateOf(false) }
     LaunchedEffect(backgroundId, customBackgroundPath, backgroundOpacity) {
         customBackgroundNeedsDarkText = if (backgroundId == "custom") {
@@ -234,6 +237,7 @@ fun ZhizhangRoot(
         CompositionLocalProvider(
             LocalHazeState provides hazeState,
             LocalGlassBackdrop provides glassBackdrop,
+            LocalGlassTransparency provides glassTransparency,
         ) {
         Box(
             modifier = Modifier
@@ -433,12 +437,7 @@ private fun AppBottomBar(
     currentRoute: String?,
     onTab: (String) -> Unit,
 ) {
-    val haze = LocalHazeState.current
-    val hazeStyle = liquidHazeStyle(tintAlpha = 0.32f)
     val shape = RoundedCornerShape(26.dp)
-    // 真机有 Haze 时保持通透；测试/低版本降级时提高不透明度保证可读性。
-    val dockTop = if (haze != null) 0.26f else 0.94f
-    val dockBottom = if (haze != null) 0.16f else 0.86f
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -450,26 +449,12 @@ private fun AppBottomBar(
                 .fillMaxWidth()
                 .height(68.dp)
                 .shadow(8.dp, shape, ambientColor = MaterialTheme.zh.glassShadow, spotColor = MaterialTheme.zh.glassShadow)
-                .clip(shape)
-                .then(if (haze != null) Modifier.hazeEffect(haze, hazeStyle) else Modifier)
-                .background(
-                    Brush.linearGradient(
-                        listOf(
-                            Color.White.copy(alpha = dockTop),
-                            Color(0xFFEAF0FF).copy(alpha = dockBottom),
-                        ),
-                    ),
-                )
-                .border(
-                    1.dp,
-                    Brush.linearGradient(
-                        listOf(
-                            Color.White.copy(alpha = 0.86f),
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
-                            MaterialTheme.zh.gold.copy(alpha = 0.22f),
-                        ),
-                    ),
-                    shape,
+                .liquidGlass(
+                    shape = shape,
+                    tint = MaterialTheme.zh.glassTop.copy(alpha = 0.16f),
+                    lensHeight = 14.dp,
+                    lensAmount = 28.dp,
+                    blurRadius = 8.dp,
                 ),
             verticalAlignment = Alignment.CenterVertically,
         ) {

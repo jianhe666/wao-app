@@ -114,6 +114,7 @@ import app.zhizhang.ui.components.AppMark
 import app.zhizhang.ui.components.GlassCircleButton
 import app.zhizhang.ui.components.PlatformSelectableText
 import app.zhizhang.ui.components.LiquidActionButton
+import app.zhizhang.ui.components.liquidGlass
 import app.zhizhang.ui.components.LocalHazeState
 import app.zhizhang.ui.components.liquidHazeStyle
 import dev.chrisbanes.haze.hazeEffect
@@ -505,10 +506,12 @@ private fun ChatHeader(
         Spacer(Modifier.weight(1f))
         Row(
             modifier = Modifier
-                .clip(RoundedCornerShape(50))
-                .border(
-                    BorderStroke(1.dp, MaterialTheme.zh.hairline.copy(alpha = 0.4f)),
-                    RoundedCornerShape(50),
+                .liquidGlass(
+                    shape = RoundedCornerShape(50),
+                    tint = MaterialTheme.zh.glassTop.copy(alpha = 0.12f),
+                    lensHeight = 6.dp,
+                    lensAmount = 14.dp,
+                    blurRadius = 2.dp,
                 )
                 .clickable(onClick = onStyleClick)
                 .semantics {
@@ -546,7 +549,15 @@ private fun ChatHeader(
             Spacer(Modifier.width(5.dp))
             IconButton(
                 onClick = onClear,
-                modifier = Modifier.size(32.dp),
+                modifier = Modifier
+                    .size(32.dp)
+                    .liquidGlass(
+                        shape = RoundedCornerShape(50),
+                        tint = MaterialTheme.zh.glassTop.copy(alpha = 0.10f),
+                        lensHeight = 5.dp,
+                        lensAmount = 10.dp,
+                        blurRadius = 2.dp,
+                    ),
             ) {
                 Icon(
                     imageVector = Icons.Default.Delete,
@@ -1048,9 +1059,19 @@ private fun ChatBillCard(
                         onClick = onCancel,
                         modifier = Modifier
                             .weight(1f)
-                            .height(38.dp),
+                            .height(38.dp)
+                            .liquidGlass(
+                                shape = RoundedCornerShape(12.dp),
+                                tint = MaterialTheme.zh.glassTop.copy(alpha = 0.10f),
+                                lensHeight = 6.dp,
+                                lensAmount = 12.dp,
+                                blurRadius = 2.dp,
+                            ),
                         shape = RoundedCornerShape(12.dp),
                         contentPadding = PaddingValues(0.dp),
+                        colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(
+                            containerColor = Color.Transparent,
+                        ),
                     ) {
                         Text(
                             text = "取消",
@@ -1062,8 +1083,13 @@ private fun ChatBillCard(
                         modifier = Modifier
                             .weight(1f)
                             .height(38.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(MaterialTheme.colorScheme.primary)
+                            .liquidGlass(
+                                shape = RoundedCornerShape(12.dp),
+                                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.30f),
+                                lensHeight = 7.dp,
+                                lensAmount = 14.dp,
+                                blurRadius = 3.dp,
+                            )
                             .clickable(onClick = onConfirm),
                         contentAlignment = Alignment.Center,
                     ) {
@@ -1194,12 +1220,12 @@ private fun ChatComposer(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
-            .clip(RoundedCornerShape(26.dp))
-            .background(MaterialTheme.zh.glassTop.copy(alpha = 0.80f))
-            .border(
-                1.dp,
-                MaterialTheme.zh.glassBorder.copy(alpha = 0.65f),
-                RoundedCornerShape(26.dp),
+            .liquidGlass(
+                shape = RoundedCornerShape(26.dp),
+                tint = MaterialTheme.zh.glassTop.copy(alpha = 0.16f),
+                lensHeight = 10.dp,
+                lensAmount = 24.dp,
+                blurRadius = 5.dp,
             )
             .padding(start = 14.dp, end = 6.dp, top = 5.dp, bottom = 5.dp),
         verticalAlignment = Alignment.Bottom,

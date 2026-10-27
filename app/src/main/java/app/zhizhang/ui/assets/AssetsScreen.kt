@@ -59,6 +59,7 @@ import app.zhizhang.data.AssetCategory
 import app.zhizhang.data.AssetEntity
 import app.zhizhang.data.Formats
 import app.zhizhang.ui.components.ZhCard
+import app.zhizhang.ui.components.liquidGlass
 import app.zhizhang.ui.theme.zh
 import java.time.Instant
 import java.time.ZoneId
@@ -110,6 +111,13 @@ fun AssetsScreen(onBack: () -> Unit) {
                     editingAsset = null
                     showEditor = true
                 },
+                modifier = Modifier.liquidGlass(
+                    shape = RoundedCornerShape(50),
+                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f),
+                    lensHeight = 6.dp,
+                    lensAmount = 14.dp,
+                    blurRadius = 2.dp,
+                ),
             ) { Text("+ 添加") }
         }
 
@@ -246,8 +254,13 @@ private fun AssetRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.zh.chip.copy(alpha = 0.55f))
+            .liquidGlass(
+                shape = RoundedCornerShape(16.dp),
+                tint = MaterialTheme.zh.glassTop.copy(alpha = 0.10f),
+                lensHeight = 8.dp,
+                lensAmount = 18.dp,
+                blurRadius = 3.dp,
+            )
             .clickable(onClick = onEdit)
             .padding(horizontal = 13.dp, vertical = 11.dp),
         verticalAlignment = Alignment.CenterVertically,

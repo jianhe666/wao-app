@@ -73,6 +73,7 @@ import app.zhizhang.ui.components.HeroAmount
 import app.zhizhang.ui.components.MonthSwitcher
 import app.zhizhang.ui.components.ThinProgressBar
 import app.zhizhang.ui.components.ZhCard
+import app.zhizhang.ui.components.liquidGlass
 import app.zhizhang.ui.components.ZhMonthPickerDialog
 import app.zhizhang.ui.theme.AmountRow
 import app.zhizhang.ui.theme.zh
@@ -453,12 +454,19 @@ private fun LedgerFilterSheet(
     }
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        containerColor = MaterialTheme.colorScheme.surface,
+        containerColor = Color.Transparent,
         shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .liquidGlass(
+                    shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+                    tint = MaterialTheme.zh.glassTop.copy(alpha = 0.16f),
+                    lensHeight = 14.dp,
+                    lensAmount = 28.dp,
+                    blurRadius = 6.dp,
+                )
                 .navigationBarsPadding()
                 .padding(start = 20.dp, end = 20.dp, bottom = 20.dp),
         ) {
@@ -578,16 +586,13 @@ private fun FilterChoice(
         fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
         color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = modifier
-            .clip(RoundedCornerShape(50))
-            .background(
-                if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
-                else MaterialTheme.zh.chip.copy(alpha = 0.62f),
-            )
-            .border(
-                1.dp,
-                if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
-                else MaterialTheme.zh.hairline.copy(alpha = 0.3f),
-                RoundedCornerShape(50),
+            .liquidGlass(
+                shape = RoundedCornerShape(50),
+                tint = if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.16f)
+                else MaterialTheme.zh.glassTop.copy(alpha = 0.12f),
+                lensHeight = 5.dp,
+                lensAmount = 12.dp,
+                blurRadius = 2.dp,
             )
             .clickable(onClick = onClick)
             .padding(horizontal = 12.dp, vertical = 7.dp),
@@ -650,16 +655,16 @@ private fun LedgerHeader(
         Spacer(Modifier.weight(1f))
         Row(
             modifier = Modifier
-                .clip(RoundedCornerShape(50))
-                .background(
-                    if (filterActive) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
-                    else MaterialTheme.zh.chip.copy(alpha = 0.55f),
-                )
-                .border(
-                    1.dp,
-                    if (filterActive) MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)
-                    else MaterialTheme.zh.hairline.copy(alpha = 0.3f),
-                    RoundedCornerShape(50),
+                .liquidGlass(
+                    shape = RoundedCornerShape(50),
+                    tint = if (filterActive) {
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.18f)
+                    } else {
+                        MaterialTheme.zh.glassTop.copy(alpha = 0.14f)
+                    },
+                    lensHeight = 6.dp,
+                    lensAmount = 14.dp,
+                    blurRadius = 2.dp,
                 )
                 .clickable(onClick = onFilter)
                 .testTag("ledger-filter")

@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.zhizhang.data.Category
+import app.zhizhang.ui.components.liquidGlass
 import app.zhizhang.data.Formats
 import app.zhizhang.data.TxSource
 import app.zhizhang.data.TxType
@@ -115,7 +116,12 @@ fun MonthSwitcher(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center,
     ) {
-        IconButton(onClick = onPrevious, modifier = Modifier.size(36.dp)) {
+        IconButton(
+            onClick = onPrevious,
+            modifier = Modifier
+                .size(36.dp)
+                .liquidGlass(RoundedCornerShape(50), tint = MaterialTheme.zh.glassTop.copy(alpha = 0.12f), lensHeight = 6.dp, lensAmount = 12.dp, blurRadius = 2.dp),
+        ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
                 contentDescription = "上个月",
@@ -125,10 +131,17 @@ fun MonthSwitcher(
         Text(
             text = "${month.year}年${month.monthValue}月",
             modifier = Modifier
-                .clip(RoundedCornerShape(50))
                 .then(
                     if (onMonthClick != null) {
-                        Modifier.clickable(onClick = onMonthClick)
+                        Modifier
+                            .liquidGlass(
+                                RoundedCornerShape(50),
+                                tint = MaterialTheme.zh.glassTop.copy(alpha = 0.10f),
+                                lensHeight = 6.dp,
+                                lensAmount = 14.dp,
+                                blurRadius = 2.dp,
+                            )
+                            .clickable(onClick = onMonthClick)
                     } else {
                         Modifier
                     },
@@ -145,7 +158,10 @@ fun MonthSwitcher(
         IconButton(
             onClick = onNext,
             enabled = canGoNext,
-            modifier = Modifier.size(36.dp).alpha(if (canGoNext) 1f else 0.25f),
+            modifier = Modifier
+                .size(36.dp)
+                .alpha(if (canGoNext) 1f else 0.25f)
+                .liquidGlass(RoundedCornerShape(50), tint = MaterialTheme.zh.glassTop.copy(alpha = 0.12f), lensHeight = 6.dp, lensAmount = 12.dp, blurRadius = 2.dp),
         ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,

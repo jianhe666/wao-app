@@ -99,6 +99,10 @@ class SettingsRepository(private val context: Context) {
         prefs[UPDATE_USE_MIRROR] ?: false
     }
 
+    val glassTransparency: Flow<Float> = context.settingsDataStore.data.map { prefs ->
+        prefs[GLASS_TRANSPARENCY] ?: 0.30f
+    }
+
 
     suspend fun snapshotJson(): JSONObject {
         val accounts = customAccounts.first()
@@ -138,6 +142,7 @@ class SettingsRepository(private val context: Context) {
             put("backgroundOpacity", backgroundOpacity.first())
             put("customBackgroundPath", customBackgroundPath.first())
             put("updateUseMirror", updateUseMirror.first())
+            put("glassTransparency", glassTransparency.first())
         }
     }
 
@@ -167,6 +172,8 @@ class SettingsRepository(private val context: Context) {
                 .toFloat().coerceIn(0f, 1f)
             prefs[CUSTOM_BACKGROUND_PATH] = json.optString("customBackgroundPath")
             prefs[UPDATE_USE_MIRROR] = json.optBoolean("updateUseMirror", false)
+            prefs[GLASS_TRANSPARENCY] = json.optDouble("glassTransparency", 0.30)
+                .toFloat().coerceIn(0f, 0.75f)
         }
     }
 
@@ -249,6 +256,12 @@ class SettingsRepository(private val context: Context) {
         context.settingsDataStore.edit { prefs ->
             prefs[BACKGROUND_ID] = id
             if (customPath != null) prefs[CUSTOM_BACKGROUND_PATH] = customPath
+        }
+    }
+
+    suspend fun setGlassTransparency(value: Float) {
+        context.settingsDataStore.edit {
+            it[GLASS_TRANSPARENCY] = value.coerceIn(0f, 0.75f)
         }
     }
 
@@ -369,6 +382,7 @@ class SettingsRepository(private val context: Context) {
         private val BACKGROUND_OPACITY = floatPreferencesKey("background_opacity")
         private val CUSTOM_BACKGROUND_PATH = stringPreferencesKey("custom_background_path")
         private val UPDATE_USE_MIRROR = booleanPreferencesKey("update_use_mirror")
+        private val GLASS_TRANSPARENCY = floatPreferencesKey("glass_transparency")
 
         const val DEFAULT_AI_BASE_URL = "https://api.deepseek.com"
         const val DEFAULT_AI_MODEL = "deepseek-flash"

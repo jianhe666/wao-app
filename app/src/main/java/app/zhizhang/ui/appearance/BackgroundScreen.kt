@@ -56,7 +56,9 @@ fun BackgroundScreen(onBack: () -> Unit) {
     val viewModel: BackgroundViewModel = viewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var opacity by remember { mutableFloatStateOf(state.opacity) }
+    var glassTransparency by remember { mutableFloatStateOf(state.glassTransparency) }
     LaunchedEffect(state.opacity) { opacity = state.opacity }
+    LaunchedEffect(state.glassTransparency) { glassTransparency = state.glassTransparency }
     val picker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument(),
     ) { uri ->
@@ -217,6 +219,24 @@ fun BackgroundScreen(onBack: () -> Unit) {
         )
         Text(
             text = "只调低背景图案，文字和按钮保持清晰；底色仍然保留。",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+
+        Spacer(Modifier.height(22.dp))
+        Text(
+            text = "玻璃透明度  ${(glassTransparency / 0.75f * 100).roundToInt()}%",
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Slider(
+            value = glassTransparency,
+            onValueChange = { glassTransparency = it },
+            onValueChangeFinished = { viewModel.setGlassTransparency(glassTransparency) },
+            valueRange = 0f..0.75f,
+        )
+        Text(
+            text = "调高后玻璃更通透，调低后文字和图标更清楚。",
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

@@ -17,6 +17,7 @@ data class BackgroundUiState(
     val presetId: String = "default",
     val opacity: Float = 1f,
     val customPath: String = "",
+    val glassTransparency: Float = 0.30f,
     val importing: Boolean = false,
     val error: String? = null,
 )
@@ -30,12 +31,14 @@ class BackgroundViewModel(application: Application) : AndroidViewModel(applicati
         settings.backgroundId,
         settings.backgroundOpacity,
         settings.customBackgroundPath,
+        settings.glassTransparency,
         importState,
-    ) { id, opacity, path, import ->
+    ) { id, opacity, path, glass, import ->
         BackgroundUiState(
             presetId = id,
             opacity = opacity,
             customPath = path,
+            glassTransparency = glass,
             importing = import.first,
             error = import.second,
         )
@@ -51,6 +54,10 @@ class BackgroundViewModel(application: Application) : AndroidViewModel(applicati
 
     fun setOpacity(value: Float) {
         viewModelScope.launch { settings.setBackgroundOpacity(value) }
+    }
+
+    fun setGlassTransparency(value: Float) {
+        viewModelScope.launch { settings.setGlassTransparency(value) }
     }
 
     fun importCustom(uri: Uri) {

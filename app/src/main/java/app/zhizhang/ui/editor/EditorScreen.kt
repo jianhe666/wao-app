@@ -76,6 +76,7 @@ import app.zhizhang.ui.components.AccountPickerSheet
 import app.zhizhang.ui.components.AddCategoryDialog
 import app.zhizhang.ui.components.CategoryAddCell
 import app.zhizhang.ui.components.CategoryCell
+import app.zhizhang.ui.components.liquidGlass
 import app.zhizhang.ui.components.ConfirmDialog
 import app.zhizhang.ui.components.ZhDatePickerDialog
 import app.zhizhang.ui.components.ZhTimePickerDialog
@@ -668,11 +669,17 @@ private fun MetaChip(
     Surface(
         modifier = modifier
             .height(36.dp)
-            .clip(RoundedCornerShape(50))
+            .liquidGlass(
+                shape = RoundedCornerShape(50),
+                tint = MaterialTheme.zh.glassTop.copy(alpha = 0.12f),
+                lensHeight = 6.dp,
+                lensAmount = 14.dp,
+                blurRadius = 3.dp,
+            )
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(50),
-        color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, MaterialTheme.zh.hairline),
+        color = Color.Transparent,
+        border = null,
     ) {
         Box(
             modifier = Modifier
@@ -753,9 +760,19 @@ private fun Keypad(
                 enabled = canSave,
                 modifier = Modifier
                     .width(92.dp)
-                    .fillMaxHeight(),
+                    .fillMaxHeight()
+                    .liquidGlass(
+                        shape = RoundedCornerShape(20.dp),
+                        tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.22f),
+                        lensHeight = 10.dp,
+                        lensAmount = 20.dp,
+                        blurRadius = 4.dp,
+                    ),
                 shape = RoundedCornerShape(20.dp),
                 contentPadding = PaddingValues(0.dp),
+                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                    containerColor = Color.Transparent,
+                ),
             ) {
                 if (saving) {
                     CircularProgressIndicator(
@@ -785,9 +802,16 @@ private fun KeypadKey(
     Surface(
         modifier = modifier
             .fillMaxHeight()
+            .liquidGlass(
+                shape = RoundedCornerShape(14.dp),
+                tint = MaterialTheme.zh.glassTop.copy(alpha = 0.12f),
+                lensHeight = 7.dp,
+                lensAmount = 16.dp,
+                blurRadius = 3.dp,
+            )
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(14.dp),
-        color = MaterialTheme.zh.chip.copy(alpha = 0.65f),
+        color = Color.Transparent,
     ) {
         Box(contentAlignment = Alignment.Center) {
             Text(

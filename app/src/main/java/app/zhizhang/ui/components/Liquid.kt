@@ -103,6 +103,7 @@ fun GlassPanel(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val extra = MaterialTheme.zh
+    val clarity = (1f - LocalGlassTransparency.current * 0.82f).coerceIn(0.25f, 1f)
     val backdrop = LocalGlassBackdrop.current
     val canUseLens = backdrop != null &&
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
@@ -141,7 +142,7 @@ fun GlassPanel(
                     },
                     onDrawSurface = {
                         // A very light tint; the backdrop and lens carry the material.
-                        drawRect(extra.glassTop.copy(alpha = 0.08f))
+                        drawRect(extra.glassTop.copy(alpha = 0.08f * clarity))
                     },
                 )
                 .then(clickable),
@@ -182,8 +183,8 @@ fun GlassPanel(
                 .background(
                     Brush.linearGradient(
                         listOf(
-                            extra.glassTop.copy(alpha = if (haze != null) 0.30f else 0.48f),
-                            extra.glassBottom.copy(alpha = if (haze != null) 0.14f else 0.28f),
+                            extra.glassTop.copy(alpha = (if (haze != null) 0.30f else 0.48f) * clarity),
+                            extra.glassBottom.copy(alpha = (if (haze != null) 0.14f else 0.28f) * clarity),
                         ),
                     ),
                 )
@@ -229,17 +230,18 @@ fun GlassCircleButton(
     content: @Composable androidx.compose.foundation.layout.BoxScope.() -> Unit,
 ) {
     val extra = MaterialTheme.zh
-    val haze = LocalHazeState.current
-    val hazeStyle = liquidHazeStyle(tintAlpha = 0.34f)
     val interaction = remember { MutableInteractionSource() }
     Box(
         modifier = modifier
             .pressScale(interaction)
             .shadow(6.dp, CircleShape, ambientColor = extra.glassShadow, spotColor = extra.glassShadow)
-            .clip(CircleShape)
-            .then(if (haze != null) Modifier.hazeEffect(haze, hazeStyle) else Modifier)
-            .background(Brush.verticalGradient(listOf(extra.glassTop, extra.glassBottom)))
-            .border(1.dp, extra.glassBorder.copy(alpha = 0.72f), CircleShape)
+            .liquidGlass(
+                shape = RoundedCornerShape(50),
+                tint = extra.glassTop.copy(alpha = 0.20f),
+                lensHeight = 8.dp,
+                lensAmount = 16.dp,
+                blurRadius = 3.dp,
+            )
             .clickable(
                 interactionSource = interaction,
                 indication = androidx.compose.material3.ripple(),
