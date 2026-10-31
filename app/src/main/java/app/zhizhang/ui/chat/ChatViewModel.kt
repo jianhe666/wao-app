@@ -334,23 +334,31 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                     intents = result.reimbursements,
                     sentAt = sentAt,
                 )
-                // AI 偶尔会说“记下了”却没有返回 transactions；不能把这句话当成记账成功。
+                // AI 经常漏掉 transactions；只要它暗示有账单、或用户这句话明显像一笔账，
+                // 就补一次本地解析。否则会出现“AI 让你确认，但确认卡片根本没弹出来”。
                 var bills = result.bills
                 var reply = result.reply
-                if (bills.isEmpty() && ChatReplyGuard.claimsRecorded(reply)) {
-                    val localBills = runCatching {
-                        repository.parseBills(
-                            input = prompt,
-                            rules = repository.rulesSnapshot(),
-                            now = sentAt,
-                            defaultAccountId = settings.lastAccountId.first(),
-                        )
-                    }.getOrDefault(emptyList())
-                    if (localBills.isNotEmpty()) {
-                        bills = localBills
-                        reply = ChatReplyGuard.honestReply(true)
-                    } else {
-                        reply = ChatReplyGuard.honestReply(false)
+                if (bills.isEmpty()) {
+                    val shouldTryLocal = ChatReplyGuard.mentionsConfirmation(reply) ||
+                        ChatReplyGuard.looksLikeBillInput(prompt) ||
+                        ChatReplyGuard.claimsRecorded(reply)
+                    if (shouldTryLocal) {
+                        val localBills = runCatching {
+                            repository.parseBills(
+                                input = prompt,
+                                rules = repository.rulesSnapshot(),
+                                now = sentAt,
+                                defaultAccountId = settings.lastAccountId.first(),
+                            )
+                        }.getOrDefault(emptyList())
+                        if (localBills.isNotEmpty()) {
+                            bills = localBills
+                            reply = ChatReplyGuard.waitingForConfirmation()
+                        } else if (ChatReplyGuard.claimsRecorded(reply) ||
+                            ChatReplyGuard.mentionsConfirmation(reply)
+                        ) {
+                            reply = ChatReplyGuard.honestReply(false)
+                        }
                     }
                 }
                 if (bills.isNotEmpty()) {

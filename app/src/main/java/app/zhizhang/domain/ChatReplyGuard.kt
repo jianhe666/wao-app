@@ -8,6 +8,31 @@ object ChatReplyGuard {
     )
     private val negations = listOf("没有", "没记", "未记", "无法", "不能", "并未", "还没")
 
+    private val confirmationHints = listOf(
+        "请确认", "确认一下", "核对", "看看对不对", "整理好了", "账单如下", "这些账",
+        "下面这些", "需要你确认", "待确认",
+    )
+    private val billActions = listOf(
+        "花", "买", "吃", "喝", "付", "充值", "打车", "外卖", "工资", "收入",
+        "报销", "消费", "转账", "缴费", "房租", "地铁", "公交", "订", "续费",
+    )
+    private val nonBillHints = listOf(
+        "多少", "怎么", "为什么", "建议", "要不要", "预算", "余额", "统计",
+        "查一下", "还能", "值不值", "该不该", "订阅", "资产",
+    )
+
+    fun mentionsConfirmation(reply: String): Boolean =
+        confirmationHints.any { reply.contains(it) }
+
+    /** AI 漏掉 transactions 时，用一个保守的本地兜底判断，避免账单卡片直接消失。 */
+    fun looksLikeBillInput(text: String): Boolean {
+        val value = text.trim()
+        if (value.isBlank() || value.length > 240) return false
+        if (nonBillHints.any { value.contains(it) }) return false
+        val hasAmount = Regex("""(?<!\d)\d+(?:\.\d{1,2})?(?!\d)""").containsMatchIn(value)
+        return hasAmount && billActions.any { value.contains(it) }
+    }
+
     fun claimsRecorded(reply: String): Boolean {
         val text = reply.trim()
         if (text.isBlank()) return false
