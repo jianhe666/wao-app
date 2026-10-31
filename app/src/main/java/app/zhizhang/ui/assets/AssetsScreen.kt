@@ -64,7 +64,7 @@ import java.time.Instant
 import java.time.ZoneId
 
 @Composable
-fun AssetsScreen(onBack: () -> Unit) {
+fun AssetsScreen(onBack: (() -> Unit)? = null) {
     val viewModel: AssetsViewModel = viewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val zone = remember { ZoneId.systemDefault() }
@@ -84,17 +84,19 @@ fun AssetsScreen(onBack: () -> Unit) {
                 .padding(top = 4.dp, bottom = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            IconButton(onClick = onBack, modifier = Modifier.size(40.dp)) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "返回",
-                    tint = MaterialTheme.colorScheme.onBackground,
-                )
+            if (onBack != null) {
+                IconButton(onClick = onBack, modifier = Modifier.size(40.dp)) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "返回",
+                        tint = MaterialTheme.colorScheme.onBackground,
+                    )
+                }
+                Spacer(Modifier.width(4.dp))
             }
-            Spacer(Modifier.width(4.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "资产管理",
+                    text = if (onBack == null) "资产" else "资产管理",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onBackground,

@@ -28,6 +28,7 @@ import app.zhizhang.domain.CustomChatStyle
 import app.zhizhang.domain.ChatStyles
 import app.zhizhang.domain.ParsedBill
 import app.zhizhang.data.TransactionStatus
+import app.zhizhang.data.ChatIntent
 import org.json.JSONArray
 import org.json.JSONObject
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -339,7 +340,8 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                 var bills = result.bills
                 var reply = result.reply
                 if (bills.isEmpty()) {
-                    val shouldTryLocal = ChatReplyGuard.mentionsConfirmation(reply) ||
+                    val shouldTryLocal = result.intent == ChatIntent.RECORD_BILL ||
+                        ChatReplyGuard.mentionsConfirmation(reply) ||
                         ChatReplyGuard.looksLikeBillInput(prompt) ||
                         ChatReplyGuard.claimsRecorded(reply)
                     if (shouldTryLocal) {

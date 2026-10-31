@@ -141,7 +141,7 @@ private val mainTabs = listOf(
     MainTab(Routes.LEDGER, "流水", R.drawable.ic_book),
     MainTab(Routes.STATS, "统计", R.drawable.ic_chart),
     MainTab(Routes.HOME, "对话", R.drawable.ic_chat, emphasized = true),
-    MainTab(Routes.IMPORT, "导入", R.drawable.ic_spark),
+    MainTab(Routes.ASSETS, "资产", R.drawable.ic_wallet),
     MainTab(Routes.SETTINGS, "我的", R.drawable.ic_settings),
 )
 
@@ -349,7 +349,7 @@ fun ZhizhangRoot(
                         onShowMessage = ::showMessage,
                         onOpenCategories = { navController.navigate(Routes.CATEGORIES) },
                         onOpenAiCategory = { navController.navigate(Routes.AI_CATEGORY) },
-                        onOpenAssets = { navController.navigate(Routes.ASSETS) },
+                        onOpenImport = { navController.navigate(Routes.IMPORT) },
                         onOpenWealth = { navController.navigate(Routes.WEALTH) },
                         onOpenBackground = { navController.navigate(Routes.BACKGROUND) },
                         highlightAi = highlightAiRow,
@@ -369,7 +369,7 @@ fun ZhizhangRoot(
                     AiCategoryHistoryScreen(onBack = { navController.popBackStack() })
                 }
                 composable(Routes.ASSETS) {
-                    AssetsScreen(onBack = { navController.popBackStack() })
+                    AssetsScreen(onBack = null)
                 }
                 composable(Routes.WEALTH) {
                     WealthScreen(onBack = { navController.popBackStack() })
@@ -379,6 +379,7 @@ fun ZhizhangRoot(
                 }
                 composable(Routes.IMPORT) {
                     ImportScreen(
+                        onBack = { navController.popBackStack() },
                         onImported = { count ->
                             openTab(Routes.LEDGER)
                             showMessage(
@@ -577,11 +578,27 @@ private fun BottomBarTab(
         animationSpec = tween(180),
         label = "tabOrb",
     )
+    val iconScale by animateFloatAsState(
+        targetValue = if (selected) 1.08f else 0.94f,
+        animationSpec = tween(180),
+        label = "tabScale",
+    )
+    val activeBackground by animateColorAsState(
+        targetValue = if (selected && !tab.emphasized) {
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
+        } else {
+            Color.Transparent
+        },
+        animationSpec = tween(180),
+        label = "tabBackground",
+    )
     Column(
         modifier = modifier
             .fillMaxSize()
+            .padding(horizontal = 3.dp, vertical = 5.dp)
             .pressScale(interaction, pressedScale = 0.94f)
-            .clip(RoundedCornerShape(18.dp))
+            .clip(RoundedCornerShape(16.dp))
+            .background(activeBackground)
             .clickable(
                 interactionSource = interaction,
                 indication = androidx.compose.material3.ripple(bounded = true),
@@ -638,7 +655,12 @@ private fun BottomBarTab(
                     painter = painterResource(id = tab.iconRes),
                     contentDescription = tab.label,
                     tint = iconColor,
-                    modifier = Modifier.size(19.dp),
+                    modifier = Modifier
+                        .size(19.dp)
+                        .graphicsLayer {
+                            scaleX = iconScale
+                            scaleY = iconScale
+                        },
                 )
             }
             Spacer(Modifier.size(2.dp))

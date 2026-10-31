@@ -108,7 +108,9 @@ class ScreenshotTest {
         composeRule.waitForIdle()
 
         runBlocking { app.settings.setAiEnabled(false) }
-        composeRule.onNodeWithTag("tab-import").performClick()
+        composeRule.onNodeWithTag("tab-settings").performClick()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("智能导入").performClick()
         composeRule.waitUntil(timeoutMillis = 10_000) {
             composeRule.onAllNodesWithText("智能导入").fetchSemanticsNodes().isNotEmpty()
         }
@@ -121,6 +123,8 @@ class ScreenshotTest {
         }
         composeRule.waitForIdle()
         capture("06-import-result")
+        composeRule.onNodeWithContentDescription("返回").performClick()
+        composeRule.waitForIdle()
         composeRule.onNodeWithTag("tab-ledger").performClick()
         composeRule.waitForIdle()
 

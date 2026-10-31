@@ -21,8 +21,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -55,6 +58,7 @@ import java.time.format.DateTimeFormatter
 
 @Composable
 fun ImportScreen(
+    onBack: (() -> Unit)? = null,
     onImported: (Int) -> Unit,
 ) {
     val viewModel: ImportViewModel = viewModel()
@@ -85,6 +89,16 @@ fun ImportScreen(
                 .padding(start = 20.dp, end = 16.dp, top = statusTop + 12.dp, bottom = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            if (onBack != null) {
+                IconButton(onClick = onBack, modifier = Modifier.size(40.dp)) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "返回",
+                        tint = MaterialTheme.colorScheme.onBackground,
+                    )
+                }
+                Spacer(Modifier.width(4.dp))
+            }
             Text(
                 text = "智能导入",
                 style = MaterialTheme.typography.headlineMedium,

@@ -202,7 +202,10 @@ fun HomeChatScreen(
 
     LaunchedEffect(state.messages.size, state.sending) {
         val count = state.messages.size + if (state.sending) 1 else 0
-        if (count > 0) listState.animateScrollToItem(count - 1)
+        if (count > 0) {
+            // 确认卡片属于消息 item 的下半部分，只滚到 item 顶部会把它藏在输入框下面。
+            listState.animateScrollToItem(count - 1, scrollOffset = 10_000)
+        }
     }
 
     if (state.checking) {

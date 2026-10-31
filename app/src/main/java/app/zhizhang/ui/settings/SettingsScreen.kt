@@ -125,7 +125,7 @@ fun SettingsScreen(
     onShowMessage: (String) -> Unit,
     onOpenCategories: () -> Unit,
     onOpenAiCategory: () -> Unit,
-    onOpenAssets: () -> Unit,
+    onOpenImport: () -> Unit,
     onOpenWealth: () -> Unit,
     onOpenBackground: () -> Unit,
     highlightAi: Boolean = false,
@@ -320,19 +320,12 @@ fun SettingsScreen(
         }
         Spacer(Modifier.height(20.dp))
 
-        SettingsSectionLabel("资产")
+        SettingsSectionLabel("财富")
         Spacer(Modifier.height(8.dp))
         ZhCard(
             modifier = Modifier.fillMaxWidth(),
             contentPadding = PaddingValues(vertical = 2.dp),
         ) {
-            SettingsRow(
-                icon = "wallet",
-                iconTint = MaterialTheme.zh.gold,
-                title = "资产管理",
-                onClick = onOpenAssets,
-            )
-            SettingsDivider()
             SettingsRow(
                 icon = "spark",
                 iconTint = MaterialTheme.colorScheme.primary,
@@ -387,6 +380,14 @@ fun SettingsScreen(
                     "未设置"
                 },
                 onClick = { showBudgetDialog = true },
+            )
+            SettingsDivider()
+            SettingsRow(
+                icon = "upload",
+                iconTint = MaterialTheme.colorScheme.primary,
+                title = "智能导入",
+                subtitle = "粘贴文本、示例或账单 CSV",
+                onClick = onOpenImport,
             )
             SettingsDivider()
             SettingsRow(
