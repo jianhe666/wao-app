@@ -18,7 +18,8 @@ object ChatReplyGuard {
     )
     private val nonBillHints = listOf(
         "多少", "怎么", "为什么", "建议", "要不要", "预算", "余额", "统计",
-        "查一下", "还能", "值不值", "该不该", "订阅", "资产",
+        "查一下", "还能", "值不值", "该不该", "订阅", "资产", "岁", "几点",
+        "日期", "星期", "天气",
     )
 
     fun mentionsConfirmation(reply: String): Boolean =
@@ -30,7 +31,8 @@ object ChatReplyGuard {
         if (value.isBlank() || value.length > 240) return false
         if (nonBillHints.any { value.contains(it) }) return false
         val hasAmount = Regex("""(?<!\d)\d+(?:\.\d{1,2})?(?!\d)""").containsMatchIn(value)
-        return hasAmount && billActions.any { value.contains(it) }
+        // 有动作词最稳；没有动作词的短句（如“星巴克 38”）也允许本地兜底。
+        return hasAmount && (billActions.any { value.contains(it) } || value.length <= 80)
     }
 
     fun claimsRecorded(reply: String): Boolean {

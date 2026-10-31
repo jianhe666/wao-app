@@ -217,8 +217,11 @@ class AiService(private val settings: SettingsRepository) {
         val json = runCatching { extractJsonObject(content) }.getOrNull()
             ?: return AiChatReply(reply = readableText(content))
         val reply = json.optString("reply").trim().ifBlank { "我整理好了，你看看对不对。" }
+        val transactionArray = json.optJSONArray("transactions")
+            ?: json.optJSONArray("bills")
+            ?: json.optJSONArray("records")
         val bills = parseTransactions(
-            array = json.optJSONArray("transactions"),
+            array = transactionArray,
             raw = lastUserText.ifBlank { reply } + "#ai-chat",
             now = now,
             zone = zone,

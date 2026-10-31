@@ -354,10 +354,25 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                         if (localBills.isNotEmpty()) {
                             bills = localBills
                             reply = ChatReplyGuard.waitingForConfirmation()
-                        } else if (ChatReplyGuard.claimsRecorded(reply) ||
-                            ChatReplyGuard.mentionsConfirmation(reply)
-                        ) {
-                            reply = ChatReplyGuard.honestReply(false)
+                        } else if (shouldTryLocal) {
+                            // 本地规则没认出来时，再让模型做一次“只提取账单”的专注调用。
+                            // 聊天的长上下文有时会让模型把 transactions 忘掉，这一次不带闲聊历史。
+                            val rescued = runCatching {
+                                aiService.parseBills(
+                                    text = prompt,
+                                    now = sentAt,
+                                    zone = zone,
+                                    accounts = Accounts.all + settings.customAccounts.first(),
+                                )
+                            }.getOrDefault(emptyList())
+                            if (rescued.isNotEmpty()) {
+                                bills = rescued
+                                reply = ChatReplyGuard.waitingForConfirmation()
+                            } else if (ChatReplyGuard.claimsRecorded(reply) ||
+                                ChatReplyGuard.mentionsConfirmation(reply)
+                            ) {
+                                reply = ChatReplyGuard.honestReply(false)
+                            }
                         }
                     }
                 }
