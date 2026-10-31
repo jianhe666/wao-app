@@ -155,6 +155,16 @@ fun EditorScreen(onClose: () -> Unit) {
                     input = state.amountInput,
                     type = state.type,
                 )
+                Spacer(Modifier.height(10.dp))
+                OutlinedTextField(
+                    value = state.merchant,
+                    onValueChange = viewModel::setMerchant,
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text("名称 / 商户") },
+                    placeholder = { Text("比如：午饭、地铁、房租") },
+                    singleLine = true,
+                    shape = RoundedCornerShape(16.dp),
+                )
                 if (!state.error.isNullOrBlank()) {
                     Spacer(Modifier.height(6.dp))
                     Text(

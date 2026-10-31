@@ -224,6 +224,10 @@ class EditorViewModel(
         _state.value = _state.value.copy(occurredAt = occurred)
     }
 
+    fun setMerchant(merchant: String) {
+        _state.value = _state.value.copy(merchant = merchant.take(40))
+    }
+
     fun setNote(note: String) {
         _state.value = _state.value.copy(note = note.take(120))
     }

@@ -15,6 +15,9 @@ object ChatReplyGuard {
         return recordedClaims.any { text.contains(it) }
     }
 
+    fun waitingForConfirmation(): String =
+        "我整理好了，请先确认下面的账单，确认后才会入账。"
+
     fun honestReply(hasBills: Boolean): String {
         return if (hasBills) {
             "我刚刚没有整理出可确认的账目，先用本地规则识别了这笔，你确认一下。"

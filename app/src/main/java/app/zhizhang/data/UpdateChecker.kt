@@ -139,6 +139,7 @@ object UpdateChecker {
     private val APK_LINK = Regex("""href="([^"]+/releases/download/[^"]+\.apk)"""")
 
     const val MIRROR_PREFIX = "https://ghfast.top/"
+    const val BAIDU_PAN_URL = "https://pan.baidu.com/s/124dX-VdU3kTpZu0w8IeXqw?pwd=9scg"
 
     fun downloadUrl(url: String, useMirror: Boolean): String {
         if (!useMirror || url.isBlank() || !url.startsWith("https://github.com/")) return url

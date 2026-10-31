@@ -8,10 +8,12 @@ import app.zhizhang.data.BaiduPanService
 import app.zhizhang.data.BaiduRepository
 import app.zhizhang.data.AppDatabase
 import app.zhizhang.data.BackupManager
+import app.zhizhang.data.Accounts
 import app.zhizhang.data.Categories
 import app.zhizhang.data.CustomCategoryStore
 import app.zhizhang.data.SettingsRepository
 import app.zhizhang.data.TransactionRepository
+import app.zhizhang.data.WealthStore
 import app.zhizhang.notification.NotificationCaptureParser
 import app.zhizhang.notification.NotificationSnapshot
 import kotlinx.coroutines.CoroutineScope
@@ -28,6 +30,7 @@ class ZhizhangApp : Application() {
         super.onCreate()
         // 在 UI 组合前同步恢复自定义分类，编辑器/统计/筛选都会立即看到。
         Categories.setCustomCategories(CustomCategoryStore(this).load())
+        Accounts.setProfileOverrides(WealthStore(this).profiles())
         cleanupScope.launch {
             runCatching {
                 val allowAll = settings.autoCaptureAllApps.first()

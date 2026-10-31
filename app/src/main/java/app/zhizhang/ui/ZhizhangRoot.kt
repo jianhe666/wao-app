@@ -97,6 +97,7 @@ import app.zhizhang.ui.aicategory.AiCategoryHistoryScreen
 import app.zhizhang.ui.aicategory.AiCategoryScreen
 import app.zhizhang.ui.appearance.BackgroundScreen
 import app.zhizhang.ui.assets.AssetsScreen
+import app.zhizhang.ui.wealth.WealthScreen
 import app.zhizhang.ui.categories.CategoryManagerScreen
 import app.zhizhang.ui.review.ReviewScreen
 import app.zhizhang.ui.importflow.ImportScreen
@@ -121,6 +122,7 @@ private object Routes {
     const val AI_CATEGORY = "ai_category"
     const val AI_CATEGORY_HISTORY = "ai_category_history"
     const val ASSETS = "assets"
+    const val WEALTH = "wealth"
     const val BACKGROUND = "background"
     const val EDITOR = "editor?txId={txId}"
 
@@ -348,6 +350,7 @@ fun ZhizhangRoot(
                         onOpenCategories = { navController.navigate(Routes.CATEGORIES) },
                         onOpenAiCategory = { navController.navigate(Routes.AI_CATEGORY) },
                         onOpenAssets = { navController.navigate(Routes.ASSETS) },
+                        onOpenWealth = { navController.navigate(Routes.WEALTH) },
                         onOpenBackground = { navController.navigate(Routes.BACKGROUND) },
                         highlightAi = highlightAiRow,
                         onHighlightAiConsumed = { highlightAiRow = false },
@@ -367,6 +370,9 @@ fun ZhizhangRoot(
                 }
                 composable(Routes.ASSETS) {
                     AssetsScreen(onBack = { navController.popBackStack() })
+                }
+                composable(Routes.WEALTH) {
+                    WealthScreen(onBack = { navController.popBackStack() })
                 }
                 composable(Routes.BACKGROUND) {
                     BackgroundScreen(onBack = { navController.popBackStack() })
@@ -432,6 +438,16 @@ fun ZhizhangRoot(
                 horizontalArrangement = Arrangement.End,
             ) {
                 TextButton(onClick = { autoUpdate = null }) { Text("稍后") }
+                TextButton(
+                    onClick = {
+                        runCatching {
+                            context.startActivity(
+                                Intent(Intent.ACTION_VIEW, Uri.parse(UpdateChecker.BAIDU_PAN_URL)),
+                            )
+                        }
+                        autoUpdate = null
+                    },
+                ) { Text("百度网盘") }
                 TextButton(
                     onClick = {
                         runCatching {

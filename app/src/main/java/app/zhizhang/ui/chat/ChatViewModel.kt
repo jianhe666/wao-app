@@ -353,10 +353,14 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                         reply = ChatReplyGuard.honestReply(false)
                     }
                 }
+                if (bills.isNotEmpty()) {
+                    // 账单确认卡片出现前，AI 不能口头宣布已经记账。
+                    reply = ChatReplyGuard.waitingForConfirmation()
+                }
                 val assistant = ChatMessage(
                     id = nextId++,
                     role = ChatRole.ASSISTANT,
-                    content = result.reply,
+                    content = reply,
                     bills = bills.map { ChatBill(it, it.categoryId) },
                     reimbursements = reimbursements,
                 )

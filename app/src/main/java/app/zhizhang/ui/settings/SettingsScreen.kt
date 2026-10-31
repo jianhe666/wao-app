@@ -126,6 +126,7 @@ fun SettingsScreen(
     onOpenCategories: () -> Unit,
     onOpenAiCategory: () -> Unit,
     onOpenAssets: () -> Unit,
+    onOpenWealth: () -> Unit,
     onOpenBackground: () -> Unit,
     highlightAi: Boolean = false,
     onHighlightAiConsumed: () -> Unit = {},
@@ -330,6 +331,14 @@ fun SettingsScreen(
                 iconTint = MaterialTheme.zh.gold,
                 title = "资产管理",
                 onClick = onOpenAssets,
+            )
+            SettingsDivider()
+            SettingsRow(
+                icon = "spark",
+                iconTint = MaterialTheme.colorScheme.primary,
+                title = "财富",
+                subtitle = "账户余额、订阅和下次扣费",
+                onClick = onOpenWealth,
             )
         }
 
@@ -1206,6 +1215,15 @@ fun SettingsScreen(
                 horizontalArrangement = Arrangement.End,
             ) {
                 TextButton(onClick = viewModel::dismissUpdate) { Text("稍后") }
+                TextButton(
+                    onClick = {
+                        openUrl(
+                            context = context,
+                            url = UpdateChecker.BAIDU_PAN_URL,
+                            onError = onShowMessage,
+                        )
+                    },
+                ) { Text("百度网盘") }
                 TextButton(
                     onClick = {
                         openUrl(

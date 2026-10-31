@@ -125,13 +125,25 @@ object Categories {
 }
 
 object Accounts {
-    val all: List<Account> = listOf(
+    private val builtIn: List<Account> = listOf(
         Account("wechat", "微信", "💬"),
         Account("alipay", "支付宝", "🔷"),
         Account("bank", "银行卡", "🏦"),
         Account("cash", "现金", "💵"),
         Account("other", "其他", "🪙"),
     )
+
+    @Volatile
+    private var profileOverrides: Map<String, Account> = emptyMap()
+
+    val all: List<Account>
+        get() = builtIn.map { profileOverrides[it.id] ?: it }
+
+    fun setProfileOverrides(overrides: Map<String, Account>) {
+        profileOverrides = overrides
+    }
+
+    fun withProfile(account: Account): Account = profileOverrides[account.id] ?: account
 
     fun byId(id: String?): Account {
         all.firstOrNull { it.id == id }?.let { return it }
