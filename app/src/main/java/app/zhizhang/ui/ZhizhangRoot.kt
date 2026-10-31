@@ -141,7 +141,7 @@ private val mainTabs = listOf(
     MainTab(Routes.LEDGER, "流水", R.drawable.ic_book),
     MainTab(Routes.STATS, "统计", R.drawable.ic_chart),
     MainTab(Routes.HOME, "对话", R.drawable.ic_chat, emphasized = true),
-    MainTab(Routes.ASSETS, "资产", R.drawable.ic_wallet),
+    MainTab(Routes.WEALTH, "财富", R.drawable.ic_wallet),
     MainTab(Routes.SETTINGS, "我的", R.drawable.ic_settings),
 )
 
@@ -350,7 +350,6 @@ fun ZhizhangRoot(
                         onOpenCategories = { navController.navigate(Routes.CATEGORIES) },
                         onOpenAiCategory = { navController.navigate(Routes.AI_CATEGORY) },
                         onOpenImport = { navController.navigate(Routes.IMPORT) },
-                        onOpenWealth = { navController.navigate(Routes.WEALTH) },
                         onOpenBackground = { navController.navigate(Routes.BACKGROUND) },
                         highlightAi = highlightAiRow,
                         onHighlightAiConsumed = { highlightAiRow = false },
@@ -372,7 +371,9 @@ fun ZhizhangRoot(
                     AssetsScreen(onBack = null)
                 }
                 composable(Routes.WEALTH) {
-                    WealthScreen(onBack = { navController.popBackStack() })
+                    WealthScreen(
+                        onOpenAssets = { navController.navigate(Routes.ASSETS) },
+                    )
                 }
                 composable(Routes.BACKGROUND) {
                     BackgroundScreen(onBack = { navController.popBackStack() })

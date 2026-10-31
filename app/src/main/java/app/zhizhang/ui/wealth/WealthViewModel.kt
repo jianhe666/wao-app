@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import app.zhizhang.ZhizhangApp
 import app.zhizhang.data.Account
+import app.zhizhang.data.AssetEntity
 import app.zhizhang.data.Accounts
 import app.zhizhang.data.Subscription
 import app.zhizhang.data.SubscriptionCycle
@@ -23,8 +24,10 @@ data class WealthAccount(
 data class WealthUiState(
     val accounts: List<WealthAccount> = emptyList(),
     val subscriptions: List<Subscription> = emptyList(),
+    val assets: List<AssetEntity> = emptyList(),
 ) {
-    val totalCents: Long get() = accounts.sumOf { it.currentCents }
+    val totalCents: Long get() = accounts.sumOf { it.currentCents } + assets.sumOf { it.valueCents }
+    val assetsTotalCents: Long get() = assets.sumOf { it.valueCents }
 }
 
 class WealthViewModel(application: Application) : AndroidViewModel(application) {
@@ -39,8 +42,9 @@ class WealthViewModel(application: Application) : AndroidViewModel(application) 
     val uiState = combine(
         app.repository.observeAll(),
         app.settings.customAccounts,
+        app.assetRepository.assets,
         revision,
-    ) { transactions, customAccounts, _ ->
+    ) { transactions, customAccounts, assets, _ ->
         val nets = transactions.groupBy { it.accountId }.mapValues { (_, rows) ->
             rows.sumOf {
                 if (it.txType == TxType.INCOME) it.amountCents else -it.amountCents
@@ -58,6 +62,7 @@ class WealthViewModel(application: Application) : AndroidViewModel(application) 
         WealthUiState(
             accounts = accounts,
             subscriptions = store.subscriptions(),
+            assets = assets,
         )
     }.stateIn(
         viewModelScope,

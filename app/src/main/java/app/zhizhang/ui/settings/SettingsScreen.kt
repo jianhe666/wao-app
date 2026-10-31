@@ -126,7 +126,6 @@ fun SettingsScreen(
     onOpenCategories: () -> Unit,
     onOpenAiCategory: () -> Unit,
     onOpenImport: () -> Unit,
-    onOpenWealth: () -> Unit,
     onOpenBackground: () -> Unit,
     highlightAi: Boolean = false,
     onHighlightAiConsumed: () -> Unit = {},
@@ -320,22 +319,6 @@ fun SettingsScreen(
         }
         Spacer(Modifier.height(20.dp))
 
-        SettingsSectionLabel("财富")
-        Spacer(Modifier.height(8.dp))
-        ZhCard(
-            modifier = Modifier.fillMaxWidth(),
-            contentPadding = PaddingValues(vertical = 2.dp),
-        ) {
-            SettingsRow(
-                icon = "spark",
-                iconTint = MaterialTheme.colorScheme.primary,
-                title = "财富",
-                subtitle = "账户余额、订阅和下次扣费",
-                onClick = onOpenWealth,
-            )
-        }
-
-        Spacer(Modifier.height(20.dp))
         SettingsSectionLabel("外观")
         Spacer(Modifier.height(8.dp))
         ZhCard(

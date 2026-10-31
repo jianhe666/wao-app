@@ -51,7 +51,7 @@ import java.time.Instant
 import java.time.ZoneId
 
 @Composable
-fun WealthScreen(onBack: () -> Unit) {
+fun WealthScreen(onOpenAssets: () -> Unit, onBack: (() -> Unit)? = null) {
     val viewModel: WealthViewModel = viewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var editingAccount by remember { mutableStateOf<Account?>(null) }
@@ -68,10 +68,12 @@ fun WealthScreen(onBack: () -> Unit) {
             .padding(horizontal = 20.dp, vertical = 4.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = onBack, modifier = Modifier.size(40.dp)) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, "返回", tint = MaterialTheme.colorScheme.onBackground)
+            if (onBack != null) {
+                IconButton(onClick = onBack, modifier = Modifier.size(40.dp)) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, "返回", tint = MaterialTheme.colorScheme.onBackground)
+                }
+                Spacer(Modifier.width(4.dp))
             }
-            Spacer(Modifier.width(4.dp))
             Text(
                 text = "财富",
                 style = MaterialTheme.typography.titleLarge,
@@ -99,7 +101,11 @@ fun WealthScreen(onBack: () -> Unit) {
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface,
             )
-            Text("${state.accounts.size} 个账户 · ${state.subscriptions.size} 个订阅", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                "${state.accounts.size} 个账户 · ${state.assets.size} 项资产 · ${state.subscriptions.size} 个订阅",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
 
         Spacer(Modifier.height(20.dp))
@@ -126,6 +132,46 @@ fun WealthScreen(onBack: () -> Unit) {
                 Text(Formats.money(item.currentCents), fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
             }
             Spacer(Modifier.height(8.dp))
+        }
+
+        Spacer(Modifier.height(16.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("资产", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Spacer(Modifier.weight(1f))
+            TextButton(
+                onClick = onOpenAssets,
+                modifier = Modifier.liquidGlass(
+                    shape = RoundedCornerShape(50),
+                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                    lensHeight = 6.dp,
+                    lensAmount = 14.dp,
+                    blurRadius = 2.dp,
+                ),
+            ) { Text("管理资产") }
+        }
+        if (state.assets.isEmpty()) {
+            Text("还没有资产记录", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        } else {
+            state.assets.take(3).forEach { asset ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .liquidGlass(
+                            shape = RoundedCornerShape(16.dp),
+                            tint = MaterialTheme.zh.glassTop.copy(alpha = 0.10f),
+                            lensHeight = 8.dp,
+                            lensAmount = 18.dp,
+                            blurRadius = 3.dp,
+                        )
+                        .clickable(onClick = onOpenAssets)
+                        .padding(horizontal = 14.dp, vertical = 11.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(asset.name, modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.onSurface)
+                    Text(Formats.money(asset.valueCents), color = MaterialTheme.colorScheme.onSurface)
+                }
+                Spacer(Modifier.height(8.dp))
+            }
         }
 
         Spacer(Modifier.height(14.dp))
