@@ -148,7 +148,7 @@ fun AssetsScreen(onBack: (() -> Unit)? = null) {
         Spacer(Modifier.height(14.dp))
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = 30.dp),
+            contentPadding = PaddingValues(bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             if (state.assets.isEmpty()) {
@@ -309,7 +309,7 @@ private fun AssetRow(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(
                     onClick = onEdit,
-                    modifier = Modifier.size(28.dp),
+                    modifier = Modifier.size(40.dp),
                 ) {
                     Icon(
                         imageVector = Icons.Default.Edit,
@@ -320,7 +320,7 @@ private fun AssetRow(
                 }
                 IconButton(
                     onClick = onDelete,
-                    modifier = Modifier.size(28.dp),
+                    modifier = Modifier.size(40.dp),
                 ) {
                     Icon(
                         imageVector = Icons.Default.Delete,
@@ -356,6 +356,8 @@ private fun AssetEditorDialog(
         )
     }
     var showDatePicker by remember { mutableStateOf(false) }
+    val validAmount = value.matches(Regex("[0-9]{1,9}(\\.[0-9]{1,2})?")) &&
+        Formats.amountInputToCents(value) > 0L
 
     GlassAlertDialog(
         onDismissRequest = onDismiss,
@@ -378,6 +380,8 @@ private fun AssetEditorDialog(
                     value = value,
                     onValueChange = { value = it },
                     label = { Text("当前价值（元）") },
+                    isError = value.isNotEmpty() && !validAmount,
+                    supportingText = { if (value.isNotEmpty() && !validAmount) Text("请输入大于 0 的金额，最多两位小数") },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     modifier = Modifier.fillMaxWidth(),
@@ -460,7 +464,7 @@ private fun AssetEditorDialog(
                     }
                     onSave(name, category, value, note, acquiredAt)
                 },
-                enabled = name.isNotBlank() && value.isNotBlank(),
+                enabled = name.isNotBlank() && validAmount,
             ) { Text(if (initial == null) "保存" else "保存修改") }
         },
         dismissButton = {

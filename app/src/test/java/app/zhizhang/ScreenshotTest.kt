@@ -21,6 +21,7 @@ import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 import java.io.File
 import java.io.FileOutputStream
+import java.time.YearMonth
 
 /**
  * 本机 Robolectric 截图冒烟测试。需要先加入演示数据，再逐页截图。
@@ -85,7 +86,7 @@ class ScreenshotTest {
         composeRule.waitForIdle()
         capture("02-ledger")
 
-        composeRule.onNodeWithText("2026年10月").performClick()
+        composeRule.onNodeWithText(YearMonth.now().let { "${it.year}年${it.monthValue}月" }).performClick()
         composeRule.waitUntil(timeoutMillis = 10_000) {
             composeRule.onAllNodesWithText("选择月份").fetchSemanticsNodes().isNotEmpty()
         }

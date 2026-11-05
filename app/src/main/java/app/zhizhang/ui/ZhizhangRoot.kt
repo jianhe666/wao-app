@@ -6,6 +6,8 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -368,7 +370,7 @@ fun ZhizhangRoot(
                     AiCategoryHistoryScreen(onBack = { navController.popBackStack() })
                 }
                 composable(Routes.ASSETS) {
-                    AssetsScreen(onBack = null)
+                    AssetsScreen(onBack = { navController.popBackStack() })
                 }
                 composable(Routes.WEALTH) {
                     WealthScreen(
@@ -436,7 +438,7 @@ fun ZhizhangRoot(
             )
             Spacer(Modifier.height(12.dp))
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.End,
             ) {
                 TextButton(onClick = { autoUpdate = null }) { Text("稍后") }
@@ -565,12 +567,12 @@ private fun BottomBarTab(
 ) {
     val interaction = remember { MutableInteractionSource() }
     val iconColor by animateColorAsState(
-        targetValue = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.78f),
+        targetValue = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
         animationSpec = tween(180),
         label = "tabIcon",
     )
     val labelColor by animateColorAsState(
-        targetValue = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.78f),
+        targetValue = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
         animationSpec = tween(180),
         label = "tabLabel",
     )

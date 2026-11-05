@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
@@ -226,7 +227,7 @@ fun WealthScreen(onOpenAssets: () -> Unit, onBack: (() -> Unit)? = null) {
             }
             Spacer(Modifier.height(8.dp))
         }
-        Spacer(Modifier.height(34.dp))
+        Spacer(Modifier.navigationBarsPadding().height(100.dp))
     }
 
     editingAccount?.let { account ->
@@ -325,8 +326,7 @@ private fun SubscriptionEditorDialog(
     var cycle by remember(initial?.id) { mutableStateOf(initial?.cycle ?: SubscriptionCycle.MONTHLY) }
     var accountId by remember(initial?.id) { mutableStateOf(initial?.accountId ?: "wechat") }
     var nextPaymentAt by remember(initial?.id) {
-        val base = initial?.nextPaymentAt ?: System.currentTimeMillis()
-        mutableStateOf(nextDate(cycle, base))
+        mutableStateOf(initial?.nextPaymentAt ?: nextDate(cycle, System.currentTimeMillis()))
     }
     var showDatePicker by remember { mutableStateOf(false) }
     GlassAlertDialog(
@@ -353,7 +353,10 @@ private fun SubscriptionEditorDialog(
                 Spacer(Modifier.height(10.dp))
                 Text("订阅方式", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(Modifier.height(5.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
                     SubscriptionCycle.entries.filter { it != SubscriptionCycle.CUSTOM }.forEach { option ->
                         TextButton(
                             onClick = {
