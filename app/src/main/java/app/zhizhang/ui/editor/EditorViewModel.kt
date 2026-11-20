@@ -289,7 +289,7 @@ class EditorViewModel(
                         type = snapshot.type,
                         categoryId = snapshot.categoryId,
                         accountId = snapshot.accountId,
-                        merchant = "",
+                        merchant = snapshot.merchant.trim(),
                         note = snapshot.note,
                         occurredAt = snapshot.occurredAt,
                         source = TxSource.MANUAL,

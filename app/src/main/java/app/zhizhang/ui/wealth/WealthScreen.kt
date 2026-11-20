@@ -27,6 +27,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.activity.compose.BackHandler
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.key
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -59,30 +62,34 @@ fun WealthScreen(onOpenAssets: () -> Unit, onBack: (() -> Unit)? = null) {
     var editingSubscription by remember { mutableStateOf<Subscription?>(null) }
     var showSubscriptionEditor by remember { mutableStateOf(false) }
     var pendingDelete by remember { mutableStateOf<Subscription?>(null) }
+    var section by rememberSaveable { mutableStateOf("overview") }
+    BackHandler(enabled = section != "overview") { section = "overview" }
     val zone = remember { ZoneId.systemDefault() }
+    val scrollState = key(section) { rememberScrollState() }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .statusBarsPadding()
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(scrollState)
             .padding(horizontal = 20.dp, vertical = 4.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            if (onBack != null) {
-                IconButton(onClick = onBack, modifier = Modifier.size(40.dp)) {
+            if (section != "overview" || onBack != null) {
+                IconButton(onClick = { if (section != "overview") section = "overview" else onBack?.invoke() }, modifier = Modifier.size(40.dp)) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, "返回", tint = MaterialTheme.colorScheme.onBackground)
                 }
                 Spacer(Modifier.width(4.dp))
             }
             Text(
-                text = "财富",
+                text = when (section) { "accounts" -> "账户余额"; "subscriptions" -> "订阅"; "savings" -> "攒攒"; else -> "财富" },
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onBackground,
             )
         }
         Spacer(Modifier.height(10.dp))
+        if (section == "overview") {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -110,6 +117,14 @@ fun WealthScreen(onOpenAssets: () -> Unit, onBack: (() -> Unit)? = null) {
         }
 
         Spacer(Modifier.height(20.dp))
+        WealthEntry("账户余额", "${state.accounts.size} 个账户", { section = "accounts" })
+        WealthEntry("资产", "${state.assets.size} 项资产", onOpenAssets)
+        WealthEntry("订阅", "${state.subscriptions.size} 个订阅", { section = "subscriptions" })
+        WealthEntry("攒攒", "设置目标，记录每一笔积攒", { section = "savings" })
+        }
+        if (section == "savings") { SavingsContent() }
+        if (section == "accounts") {
+        Spacer(Modifier.height(20.dp))
         Text("账户余额", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(Modifier.height(8.dp))
         state.accounts.forEach { item ->
@@ -135,46 +150,8 @@ fun WealthScreen(onOpenAssets: () -> Unit, onBack: (() -> Unit)? = null) {
             Spacer(Modifier.height(8.dp))
         }
 
-        Spacer(Modifier.height(16.dp))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("资产", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Spacer(Modifier.weight(1f))
-            TextButton(
-                onClick = onOpenAssets,
-                modifier = Modifier.liquidGlass(
-                    shape = RoundedCornerShape(50),
-                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
-                    lensHeight = 6.dp,
-                    lensAmount = 14.dp,
-                    blurRadius = 2.dp,
-                ),
-            ) { Text("管理资产") }
         }
-        if (state.assets.isEmpty()) {
-            Text("还没有资产记录", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        } else {
-            state.assets.take(3).forEach { asset ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .liquidGlass(
-                            shape = RoundedCornerShape(16.dp),
-                            tint = MaterialTheme.zh.glassTop.copy(alpha = 0.10f),
-                            lensHeight = 8.dp,
-                            lensAmount = 18.dp,
-                            blurRadius = 3.dp,
-                        )
-                        .clickable(onClick = onOpenAssets)
-                        .padding(horizontal = 14.dp, vertical = 11.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(asset.name, modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.onSurface)
-                    Text(Formats.money(asset.valueCents), color = MaterialTheme.colorScheme.onSurface)
-                }
-                Spacer(Modifier.height(8.dp))
-            }
-        }
-
+        if (section == "subscriptions") {
         Spacer(Modifier.height(14.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text("订阅", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -226,6 +203,7 @@ fun WealthScreen(onOpenAssets: () -> Unit, onBack: (() -> Unit)? = null) {
                 }
             }
             Spacer(Modifier.height(8.dp))
+        }
         }
         Spacer(Modifier.navigationBarsPadding().height(100.dp))
     }
@@ -439,5 +417,22 @@ private fun SubscriptionEditorDialog(
                 showDatePicker = false
             },
         )
+    }
+}
+
+@Composable
+private fun WealthEntry(title: String, subtitle: String, onClick: () -> Unit) {
+    app.zhizhang.ui.components.ZhCard(
+        modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+        onClick = onClick,
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text(title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
+                Spacer(Modifier.height(5.dp))
+                Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            Text("›", style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.primary)
+        }
     }
 }

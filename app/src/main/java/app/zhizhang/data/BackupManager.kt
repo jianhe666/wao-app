@@ -111,6 +111,7 @@ class BackupManager(
         }
         root.put("assets", assetArray)
         root.put("settings", settings.snapshotJson())
+        root.put("savingsGoals", SavingsStore(context).snapshot())
         val customCategoryArray = JSONArray()
         CustomCategoryStore(context).load().forEach { category ->
             customCategoryArray.put(
@@ -145,6 +146,7 @@ class BackupManager(
         if (json.length > 20_000_000) throw IllegalArgumentException("备份文件过大")
 
         val root = JSONObject(json)
+        val savings = root.optJSONArray("savingsGoals")?.let { SavingsStore(context).validateSnapshot(it) }
         require(root.optString("app") == "zhizhang") { "这不是哇哦记账的备份文件" }
         val schema = root.optInt("schema", 0)
         require(schema == 1) { "备份文件版本暂不支持" }
@@ -272,6 +274,7 @@ class BackupManager(
         }
         root.optJSONObject("settings")?.let { settings.restoreSnapshot(it) }
             ?: settings.setBudget(root.optLong("budgetCents", 0L))
+        savings?.let { require(SavingsStore(context).save(it)) { "攒钱目标恢复失败" } }
         restored.size
     }
 
